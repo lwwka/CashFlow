@@ -1,5 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { IsEnum, IsString, MaxLength } from 'class-validator';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+
+import { CategoriesService } from './categories.service';
 
 enum CategoryType {
   Income = 'income',
@@ -7,33 +10,51 @@ enum CategoryType {
 }
 
 class CategoryDto {
+  @ApiPropertyOptional({ example: 'demo@cashflow.local' })
+  @IsOptional()
+  @IsString()
+  userEmail?: string;
+
+  @ApiProperty({ example: 'Food' })
   @IsString()
   @MaxLength(64)
   name!: string;
 
+  @ApiProperty({ enum: CategoryType, example: 'expense' })
   @IsEnum(CategoryType)
   type!: CategoryType;
 }
 
+class QueryCategoriesDto {
+  @ApiPropertyOptional({ example: 'demo@cashflow.local' })
+  @IsOptional()
+  @IsString()
+  userEmail?: string;
+}
+
+@ApiTags('categories')
 @Controller('categories')
 export class CategoriesController {
+  constructor(private readonly categoriesService: CategoriesService) {}
+
   @Get()
-  list(): { items: unknown[] } {
-    return { items: [] };
+  @ApiQuery({ name: 'userEmail', required: false, example: 'demo@cashflow.local' })
+  list(@Query() query: QueryCategoriesDto): Promise<{ items: unknown[] }> {
+    return this.categoriesService.list(query.userEmail);
   }
 
   @Post()
-  create(@Body() body: CategoryDto): CategoryDto {
-    return body;
+  create(@Body() body: CategoryDto): Promise<unknown> {
+    return this.categoriesService.create(body);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: Partial<CategoryDto>): { id: string; payload: Partial<CategoryDto> } {
-    return { id, payload: body };
+  update(@Param('id') id: string, @Body() body: Partial<CategoryDto>): Promise<unknown> {
+    return this.categoriesService.update(id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): { id: string; deleted: true } {
-    return { id, deleted: true };
+  remove(@Param('id') id: string, @Query() query: QueryCategoriesDto): Promise<{ id: string; deleted: true }> {
+    return this.categoriesService.remove(id, query.userEmail);
   }
 }

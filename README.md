@@ -17,6 +17,30 @@ npm run start:dev
 ```
 
 API base: `http://localhost:3000/api/v1`
+Swagger UI: `http://localhost:3000/docs`
+
+## PostgreSQL Connection
+
+Copy `backend/.env.example` to `backend/.env` and set your PostgreSQL password:
+
+```bash
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=your_postgres_password
+PGDATABASE=cashflow
+```
+
+## Load Demo Data From Swagger
+
+Start the backend, open Swagger, then call `POST /api/v1/dev/seed`.
+
+Swagger includes a ready-to-use JSON example. When it succeeds, demo data is inserted into:
+
+- `users`
+- `categories`
+- `transactions`
+- `budgets`
 
 ## Security Baseline
 
