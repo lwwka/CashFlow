@@ -29,6 +29,7 @@ PGPORT=5432
 PGUSER=postgres
 PGPASSWORD=your_postgres_password
 PGDATABASE=cashflow
+DATABASE_URL="postgresql://postgres:your_postgres_password@localhost:5432/cashflow"
 ```
 
 ## Load Demo Data From Swagger
@@ -41,6 +42,20 @@ Swagger includes a ready-to-use JSON example. When it succeeds, demo data is ins
 - `categories`
 - `transactions`
 - `budgets`
+
+## Generate Prisma ERD
+
+Prisma is configured here as a schema-to-ERD tool for documentation.
+
+```bash
+cd backend
+npm install
+npm run prisma:erd
+```
+
+Generated file:
+
+- `docs/prisma-erd.svg`
 
 ## Security Baseline
 
