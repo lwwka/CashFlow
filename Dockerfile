@@ -6,7 +6,7 @@ COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
 
 COPY backend ./
-RUN npm run prisma:generate
+RUN npm run prisma:generate:deploy
 RUN npm run build
 
 FROM node:20-alpine AS runtime
