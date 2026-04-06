@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.service';
-import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransactionRecord, TransactionsService, TransactionType } from './transactions.service';
 
 enum TransactionTypeEnum {
@@ -13,11 +13,6 @@ enum TransactionTypeEnum {
 }
 
 class CreateTransactionDto {
-  @ApiPropertyOptional({ example: 'demo@cashflow.local' })
-  @IsOptional()
-  @IsString()
-  userEmail?: string;
-
   @ApiProperty({ enum: TransactionTypeEnum, example: 'expense' })
   @IsEnum(TransactionTypeEnum)
   type!: TransactionType;
@@ -44,11 +39,6 @@ class CreateTransactionDto {
 }
 
 class UpdateTransactionDto {
-  @ApiPropertyOptional({ example: 'demo@cashflow.local' })
-  @IsOptional()
-  @IsString()
-  userEmail?: string;
-
   @ApiPropertyOptional({ enum: TransactionTypeEnum, example: 'expense' })
   @IsOptional()
   @IsEnum(TransactionTypeEnum)
@@ -88,48 +78,43 @@ class QueryTransactionsDto {
   @IsString()
   q?: string;
 
-  @ApiPropertyOptional({ example: 'demo@cashflow.local' })
-  @IsOptional()
-  @IsString()
-  userEmail?: string;
 }
 
 @ApiTags('transactions')
 @Controller('transactions')
-@UseGuards(OptionalJwtAuthGuard)
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Get()
   @ApiQuery({ name: 'month', required: false, example: '2026-04' })
   @ApiQuery({ name: 'q', required: false, example: 'lunch' })
-  @ApiQuery({ name: 'userEmail', required: false, example: 'demo@cashflow.local' })
-  list(@Query() query: QueryTransactionsDto, @CurrentUser() user: AuthUser | null): Promise<TransactionRecord[]> {
+  list(@Query() query: QueryTransactionsDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord[]> {
     return this.transactionsService.list({
       ...query,
-      userEmail: user?.email ?? query.userEmail,
+      userEmail: user.email,
     });
   }
 
   @Post()
-  create(@Body() body: CreateTransactionDto, @CurrentUser() user: AuthUser | null): Promise<TransactionRecord> {
+  create(@Body() body: CreateTransactionDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord> {
     return this.transactionsService.create({
       ...body,
-      userEmail: user?.email ?? body.userEmail,
+      userEmail: user.email,
     });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: UpdateTransactionDto, @CurrentUser() user: AuthUser | null): Promise<TransactionRecord> {
+  update(@Param('id') id: string, @Body() body: UpdateTransactionDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord> {
     return this.transactionsService.update(id, {
       ...body,
-      userEmail: user?.email ?? body.userEmail,
+      userEmail: user.email,
     });
   }
 
   @Delete(':id')
-  @ApiQuery({ name: 'userEmail', required: false, example: 'demo@cashflow.local' })
-  remove(@Param('id') id: string, @Query('userEmail') userEmail: string | undefined, @CurrentUser() user: AuthUser | null): Promise<{ id: string; deleted: true }> {
-    return this.transactionsService.remove(id, user?.email ?? userEmail);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthUser): Promise<{ id: string; deleted: true }> {
+    return this.transactionsService.remove(id, user.email);
   }
 }
