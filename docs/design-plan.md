@@ -196,6 +196,34 @@ controller、service、frontend pages 出現重複模式時，優先抽 helper /
   - `useTransactions`
   - `useCategories`
   - `useBudgets`
+- 已建立對應 mutation hooks：
+  - `useTransactionMutations`
+  - `useCategoryMutations`
+  - `useBudgetMutations`
+
+目前前端資料層結構圖：
+
+```text
+Pages
+├─ DashboardPage
+│  ├─ useOverview(month)
+│  ├─ useTransactions(month)
+│  └─ useBudgets(month)
+│
+├─ TransactionsPage
+│  ├─ useTransactions(month)
+│  ├─ useCategories()
+│  └─ useTransactionMutations()
+│
+├─ CategoriesPage
+│  ├─ useCategories()
+│  └─ useCategoryMutations()
+│
+└─ BudgetsPage
+   ├─ useBudgets(month)
+   ├─ useCategories()
+   └─ useBudgetMutations()
+```
 
 目前仍需持續改善的問題：
 
@@ -477,6 +505,34 @@ Current progress:
   - `useTransactions`
   - `useCategories`
   - `useBudgets`
+- matching mutation hooks now exist:
+  - `useTransactionMutations`
+  - `useCategoryMutations`
+  - `useBudgetMutations`
+
+Current frontend data-layer structure:
+
+```text
+Pages
+├─ DashboardPage
+│  ├─ useOverview(month)
+│  ├─ useTransactions(month)
+│  └─ useBudgets(month)
+│
+├─ TransactionsPage
+│  ├─ useTransactions(month)
+│  ├─ useCategories()
+│  └─ useTransactionMutations()
+│
+├─ CategoriesPage
+│  ├─ useCategories()
+│  └─ useCategoryMutations()
+│
+└─ BudgetsPage
+   ├─ useBudgets(month)
+   ├─ useCategories()
+   └─ useBudgetMutations()
+```
 
 Remaining issues:
 

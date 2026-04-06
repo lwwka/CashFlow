@@ -7,8 +7,16 @@ import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+  const corsOrigin = process.env.CORS_ORIGIN;
+  const enableSwagger = (process.env.ENABLE_SWAGGER ?? 'true') === 'true';
+
   app.enableCors({
-    origin: true,
+    origin: corsOrigin
+      ? corsOrigin
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : true,
     credentials: true,
   });
   app.use(helmet());
@@ -21,21 +29,23 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('CashFlow API')
-    .setDescription('API documentation for the CashFlow MVP backend.')
-    .setVersion('0.1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-      'JWT-auth',
-    )
-    .build();
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, swaggerDocument);
+  if (enableSwagger) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('CashFlow API')
+      .setDescription('API documentation for the CashFlow MVP backend.')
+      .setVersion('0.1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+        'JWT-auth',
+      )
+      .build();
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, swaggerDocument);
+  }
 
   const port = process.env.PORT ?? '3000';
   await app.listen(Number(port));

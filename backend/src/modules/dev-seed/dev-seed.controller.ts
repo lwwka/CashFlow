@@ -1,8 +1,11 @@
-import { Body, Controller, ForbiddenException, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, ForbiddenException, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsArray, IsEmail, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Matches, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthUser } from '../auth/auth.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DevSeedService } from './dev-seed.service';
 
 enum TransactionTypeEnum {
@@ -56,6 +59,7 @@ class SeedBudgetDto {
 }
 
 export class SeedRequestDto {
+  @IsOptional()
   @IsEmail()
   userEmail!: string;
 
@@ -102,6 +106,8 @@ const seedExample = {
 
 @ApiTags('dev-seed')
 @Controller('dev/seed')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class DevSeedController {
   constructor(private readonly devSeedService: DevSeedService) {}
 
@@ -128,15 +134,22 @@ export class DevSeedController {
       },
     },
   })
-  load(@Body() body: SeedRequestDto): Promise<{
+  load(@Body() body: SeedRequestDto, @CurrentUser() user: AuthUser): Promise<{
     message: string;
     userEmail: string;
     inserted: { categories: number; transactions: number; budgets: number };
   }> {
-    if (process.env.NODE_ENV === 'production') {
-      throw new ForbiddenException('dev seed is disabled in production');
+    if (!['development', 'test'].includes(process.env.NODE_ENV ?? 'development')) {
+      throw new ForbiddenException('dev seed is only enabled in development or test');
     }
 
-    return this.devSeedService.load(body);
+    if (body.userEmail && body.userEmail !== user.email) {
+      throw new ForbiddenException('dev seed can only load data for the authenticated user');
+    }
+
+    return this.devSeedService.load({
+      ...body,
+      userEmail: user.email,
+    });
   }
 }
