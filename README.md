@@ -13,6 +13,7 @@ MVP scaffold for a monthly income/expense tracking tool.
 ```bash
 cd backend
 npm install
+npm run prisma:generate
 npm run start:dev
 ```
 
@@ -56,6 +57,49 @@ npm run prisma:erd
 Generated file:
 
 - `docs/prisma-erd.svg`
+
+## Reset Database With Prisma
+
+You can rebuild the local development database and load demo data with:
+
+```bash
+cd backend
+npm run db:reset
+```
+
+This flow will:
+
+1. Ensure PostgreSQL extension setup
+2. Reset the schema with Prisma
+3. Re-apply PostgreSQL-specific constraint/index fixes
+4. Run the Prisma seed script
+
+## Initialize Demo Data Only
+
+If the schema is already present and you only want to insert demo data:
+
+```bash
+cd backend
+npm run db:seed
+```
+
+## Recommended Local DB Workflow
+
+Use this when setting up the project on a new machine:
+
+```bash
+cd backend
+npm install
+npm run prisma:generate
+npm run db:reset
+```
+
+Use this when the schema already exists and you only want to reload demo data:
+
+```bash
+cd backend
+npm run db:seed
+```
 
 ## Frontend
 

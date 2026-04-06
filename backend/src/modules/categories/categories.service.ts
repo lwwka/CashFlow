@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { DatabaseService } from '../../database/database.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UserScopeService } from '../../prisma/user-scope.service';
 
 export interface CategoryRecord {
   id: string;
@@ -10,95 +11,112 @@ export interface CategoryRecord {
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly databaseService: DatabaseService) {}
-
-  private requireUserEmail(userEmail?: string): string {
-    if (!userEmail) {
-      throw new BadRequestException('userEmail is required');
-    }
-
-    return userEmail;
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userScope: UserScopeService,
+  ) {}
 
   async list(userEmail?: string): Promise<{ items: CategoryRecord[] }> {
-    const email = this.requireUserEmail(userEmail);
-    const result = await this.databaseService.query<CategoryRecord>(
-      `
-        SELECT c.id, c.name, c.type
-        FROM categories c
-        JOIN users u ON u.id = c.user_id
-        WHERE u.email = $1
-        ORDER BY c.type ASC, c.name ASC
-      `,
-      [email],
-    );
+    const email = this.userScope.requireUserEmail(userEmail);
 
-    return { items: result.rows };
+    const categories = await this.prisma.category.findMany({
+      where: {
+        user: { email },
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+      orderBy: [{ type: 'asc' }, { name: 'asc' }],
+    });
+
+    return {
+      items: categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        type: category.type,
+      })),
+    };
   }
 
   async create(input: { userEmail?: string; name: string; type: 'income' | 'expense' }): Promise<CategoryRecord> {
-    const email = this.requireUserEmail(input.userEmail);
-    const result = await this.databaseService.query<CategoryRecord>(
-      `
-        INSERT INTO categories (user_id, name, type)
-        SELECT u.id, $2, $3
-        FROM users u
-        WHERE u.email = $1
-        ON CONFLICT (user_id, name, type)
-        DO UPDATE SET updated_at = NOW()
-        RETURNING id, name, type
-      `,
-      [email, input.name, input.type],
-    );
+    const email = this.userScope.requireUserEmail(input.userEmail);
+    const userId = await this.userScope.getUserIdOrThrow(email);
 
-    if (result.rowCount === 0) {
-      throw new NotFoundException(`User not found for email ${email}`);
-    }
+    const category = await this.prisma.category.upsert({
+      where: {
+        userId_name_type: {
+          userId,
+          name: input.name,
+          type: input.type,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        name: input.name,
+        type: input.type,
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+    });
 
-    return result.rows[0];
+    return category;
   }
 
   async update(id: string, input: { userEmail?: string; name?: string; type?: 'income' | 'expense' }): Promise<CategoryRecord> {
-    const email = this.requireUserEmail(input.userEmail);
-    const result = await this.databaseService.query<CategoryRecord>(
-      `
-        UPDATE categories c
-        SET
-          name = COALESCE($3, c.name),
-          type = COALESCE($4, c.type),
-          updated_at = NOW()
-        FROM users u
-        WHERE c.id = $1
-          AND u.id = c.user_id
-          AND u.email = $2
-        RETURNING c.id, c.name, c.type
-      `,
-      [id, email, input.name ?? null, input.type ?? null],
-    );
+    const email = this.userScope.requireUserEmail(input.userEmail);
 
-    if (result.rowCount === 0) {
+    const existing = await this.prisma.category.findFirst({
+      where: {
+        id,
+        user: { email },
+      },
+      select: { id: true },
+    });
+
+    if (!existing) {
       throw new NotFoundException(`Category ${id} not found`);
     }
 
-    return result.rows[0];
+    const category = await this.prisma.category.update({
+      where: { id },
+      data: {
+        ...(input.name ? { name: input.name } : {}),
+        ...(input.type ? { type: input.type } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+    });
+
+    return category;
   }
 
   async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
-    const email = this.requireUserEmail(userEmail);
-    const result = await this.databaseService.query(
-      `
-        DELETE FROM categories c
-        USING users u
-        WHERE c.id = $1
-          AND u.id = c.user_id
-          AND u.email = $2
-      `,
-      [id, email],
-    );
+    const email = this.userScope.requireUserEmail(userEmail);
 
-    if (result.rowCount === 0) {
+    const existing = await this.prisma.category.findFirst({
+      where: {
+        id,
+        user: { email },
+      },
+      select: { id: true },
+    });
+
+    if (!existing) {
       throw new NotFoundException(`Category ${id} not found`);
     }
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
 
     return { id, deleted: true };
   }

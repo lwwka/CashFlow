@@ -1,18 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { transaction_type } from '@prisma/client';
 
-import { DatabaseService } from '../../database/database.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UserScopeService } from '../../prisma/user-scope.service';
 
 @Injectable()
 export class OverviewService {
-  constructor(private readonly databaseService: DatabaseService) {}
-
-  private requireUserEmail(userEmail?: string): string {
-    if (!userEmail) {
-      throw new BadRequestException('userEmail is required');
-    }
-
-    return userEmail;
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userScope: UserScopeService,
+  ) {}
 
   async getMonthlyOverview(month: string, userEmail?: string): Promise<{
     month: string;
@@ -20,27 +17,34 @@ export class OverviewService {
     totalExpense: number;
     balance: number;
   }> {
-    const email = this.requireUserEmail(userEmail);
-    const result = await this.databaseService.query<{
-      total_income: string | null;
-      total_expense: string | null;
-    }>(
-      `
-        SELECT
-          COALESCE(SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END), 0)::text AS total_income,
-          COALESCE(SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END), 0)::text AS total_expense
-        FROM transactions t
-        JOIN users u ON u.id = t.user_id
-        WHERE u.email = $1
-          AND to_char(t.occurred_on, 'YYYY-MM') = $2
-          AND t.deleted_at IS NULL
-      `,
-      [email, month],
-    );
+    const email = this.userScope.requireUserEmail(userEmail);
+    const start = new Date(`${month}-01T00:00:00.000Z`);
+    const end = new Date(start);
+    end.setUTCMonth(end.getUTCMonth() + 1);
 
-    const row = result.rows[0];
-    const totalIncome = Number(row?.total_income ?? 0);
-    const totalExpense = Number(row?.total_expense ?? 0);
+    const [incomeAggregate, expenseAggregate] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: {
+          user: { email },
+          type: transaction_type.income,
+          deletedAt: null,
+          occurredOn: { gte: start, lt: end },
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: {
+          user: { email },
+          type: transaction_type.expense,
+          deletedAt: null,
+          occurredOn: { gte: start, lt: end },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const totalIncome = Number(incomeAggregate._sum.amount ?? 0);
+    const totalExpense = Number(expenseAggregate._sum.amount ?? 0);
 
     return {
       month,
