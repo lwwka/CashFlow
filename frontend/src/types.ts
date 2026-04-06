@@ -37,3 +37,17 @@ export interface BudgetsResponse {
   month: string;
   items: Budget[];
 }
+
+export interface AuthResponse {
+  accessToken: string;
+  user: {
+    id: string;
+    email: string;
+  };
+}
+
+export interface AuthProfile {
+  id: string;
+  email: string;
+  createdAt: string;
+}

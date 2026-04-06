@@ -13,7 +13,7 @@ interface CashflowData {
   reload: () => Promise<void>;
 }
 
-export function useCashflowData(userEmail: string, month: string): CashflowData {
+export function useCashflowData(month: string): CashflowData {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<CategoriesResponse['items']>([]);
@@ -27,10 +27,10 @@ export function useCashflowData(userEmail: string, month: string): CashflowData 
 
     try {
       const [nextOverview, nextTransactions, nextCategories, nextBudgets] = await Promise.all([
-        fetchOverview(userEmail, month),
-        fetchTransactions(userEmail, month),
-        fetchCategories(userEmail),
-        fetchBudgets(userEmail, month),
+        fetchOverview(month),
+        fetchTransactions(month),
+        fetchCategories(),
+        fetchBudgets(month),
       ]);
 
       setOverview(nextOverview);
@@ -46,7 +46,7 @@ export function useCashflowData(userEmail: string, month: string): CashflowData 
 
   useEffect(() => {
     void reload();
-  }, [userEmail, month]);
+  }, [month]);
 
   return {
     overview,

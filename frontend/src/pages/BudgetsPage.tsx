@@ -7,7 +7,6 @@ import { upsertBudget } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
-  userEmail: string;
   month: string;
 }
 
@@ -20,8 +19,8 @@ function formatCurrency(value: number): string {
 }
 
 export function BudgetsPage(): JSX.Element {
-  const { userEmail, month } = useOutletContext<ShellContext>();
-  const { budgets, categories, reload, error } = useCashflowData(userEmail, month);
+  const { month } = useOutletContext<ShellContext>();
+  const { budgets, categories, reload, error } = useCashflowData(month);
   const { t } = usePreferences();
   const [form, setForm] = useState({ amount: '0', categoryId: '' });
   const [status, setStatus] = useState<string | null>(null);
@@ -32,7 +31,6 @@ export function BudgetsPage(): JSX.Element {
 
     try {
       await upsertBudget({
-        userEmail,
         month,
         amount: Number(form.amount),
         categoryId: form.categoryId || undefined,

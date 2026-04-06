@@ -1,4 +1,4 @@
-import type { Budget, BudgetsResponse, CategoriesResponse, Category, Overview, Transaction } from '../types';
+import type { AuthProfile, AuthResponse, Budget, BudgetsResponse, CategoriesResponse, Category, Overview, Transaction } from '../types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
@@ -16,9 +16,11 @@ function buildQuery(params: Record<string, string | undefined>): string {
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = localStorage.getItem('cashflow-access-token');
   const response = await fetch(`${apiBaseUrl}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
     ...init,
@@ -32,23 +34,41 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function fetchOverview(userEmail: string, month: string): Promise<Overview> {
+export function register(payload: { email: string; password: string }): Promise<AuthResponse> {
+  return requestJson('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function login(payload: { email: string; password: string }): Promise<AuthResponse> {
+  return requestJson('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function fetchMe(): Promise<AuthProfile> {
+  return requestJson('/auth/me');
+}
+
+export function fetchOverview(month: string, userEmail?: string): Promise<Overview> {
   return requestJson(`/overview${buildQuery({ userEmail, month })}`);
 }
 
-export function fetchTransactions(userEmail: string, month?: string): Promise<Transaction[]> {
+export function fetchTransactions(month?: string, userEmail?: string): Promise<Transaction[]> {
   return requestJson(`/transactions${buildQuery({ userEmail, month })}`);
 }
 
-export function fetchCategories(userEmail: string): Promise<CategoriesResponse> {
+export function fetchCategories(userEmail?: string): Promise<CategoriesResponse> {
   return requestJson(`/categories${buildQuery({ userEmail })}`);
 }
 
-export function fetchBudgets(userEmail: string, month: string): Promise<BudgetsResponse> {
+export function fetchBudgets(month: string, userEmail?: string): Promise<BudgetsResponse> {
   return requestJson(`/budgets${buildQuery({ userEmail, month })}`);
 }
 
-export function createCategory(payload: { userEmail: string; name: string; type: 'income' | 'expense' }): Promise<Category> {
+export function createCategory(payload: { userEmail?: string; name: string; type: 'income' | 'expense' }): Promise<Category> {
   return requestJson('/categories', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -56,7 +76,7 @@ export function createCategory(payload: { userEmail: string; name: string; type:
 }
 
 export function createTransaction(payload: {
-  userEmail: string;
+  userEmail?: string;
   type: 'income' | 'expense';
   amount: number;
   occurredOn: string;
@@ -69,14 +89,14 @@ export function createTransaction(payload: {
   });
 }
 
-export function deleteTransaction(id: string, userEmail: string): Promise<{ id: string; deleted: true }> {
+export function deleteTransaction(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
   return requestJson(`/transactions/${id}${buildQuery({ userEmail })}`, {
     method: 'DELETE',
   });
 }
 
 export function upsertBudget(payload: {
-  userEmail: string;
+  userEmail?: string;
   month: string;
   amount: number;
   categoryId?: string;

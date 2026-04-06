@@ -7,13 +7,12 @@ import { createCategory } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
-  userEmail: string;
   month: string;
 }
 
 export function CategoriesPage(): JSX.Element {
-  const { userEmail, month } = useOutletContext<ShellContext>();
-  const { categories, error, reload } = useCashflowData(userEmail, month);
+  const { month } = useOutletContext<ShellContext>();
+  const { categories, error, reload } = useCashflowData(month);
   const { t } = usePreferences();
   const [form, setForm] = useState({ name: '', type: 'expense' });
   const [status, setStatus] = useState<string | null>(null);
@@ -24,7 +23,6 @@ export function CategoriesPage(): JSX.Element {
 
     try {
       await createCategory({
-        userEmail,
         name: form.name,
         type: form.type as 'income' | 'expense',
       });

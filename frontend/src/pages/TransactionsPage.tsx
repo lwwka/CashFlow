@@ -7,7 +7,6 @@ import { createTransaction, deleteTransaction } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
-  userEmail: string;
   month: string;
 }
 
@@ -20,8 +19,8 @@ function formatCurrency(value: number): string {
 }
 
 export function TransactionsPage(): JSX.Element {
-  const { userEmail, month } = useOutletContext<ShellContext>();
-  const { transactions, categories, isLoading, error, reload } = useCashflowData(userEmail, month);
+  const { month } = useOutletContext<ShellContext>();
+  const { transactions, categories, isLoading, error, reload } = useCashflowData(month);
   const { t } = usePreferences();
   const [status, setStatus] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,7 +39,6 @@ export function TransactionsPage(): JSX.Element {
 
     try {
       await createTransaction({
-        userEmail,
         type: form.type as 'income' | 'expense',
         amount: Number(form.amount),
         occurredOn: form.occurredOn,
@@ -58,7 +56,7 @@ export function TransactionsPage(): JSX.Element {
   }
 
   async function handleDelete(id: string): Promise<void> {
-    await deleteTransaction(id, userEmail);
+    await deleteTransaction(id);
     setStatus(t('transactions.deleted'));
     await reload();
   }

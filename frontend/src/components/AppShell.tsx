@@ -1,15 +1,16 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
+import { useAuth } from '../providers/AuthProvider';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface AppShellProps {
-  userEmail: string;
   month: string;
-  onUserEmailChange: (value: string) => void;
   onMonthChange: (value: string) => void;
 }
 
 export function AppShell(props: AppShellProps): JSX.Element {
+  const navigate = useNavigate();
+  const { logout, profile } = useAuth();
   const { locale, setLocale, theme, setTheme, t } = usePreferences();
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
@@ -51,15 +52,6 @@ export function AppShell(props: AppShellProps): JSX.Element {
               <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-white/55">{t('shell.filters')}</h2>
               <div className="mt-4 space-y-4">
                 <label className="field">
-                  <span className="field-label">{t('shell.userEmail')}</span>
-                  <input
-                    className="text-input"
-                    value={props.userEmail}
-                    onChange={(event) => props.onUserEmailChange(event.target.value)}
-                    placeholder="demo@cashflow.local"
-                  />
-                </label>
-                <label className="field">
                   <span className="field-label">{t('shell.month')}</span>
                   <input
                     className="text-input"
@@ -82,13 +74,28 @@ export function AppShell(props: AppShellProps): JSX.Element {
                     <option value="light">{t('theme.light')}</option>
                   </select>
                 </label>
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm">
+                  <p className="field-label">Signed in 已登入</p>
+                  <p className="mt-2 text-sm text-white/80">{profile?.email}</p>
+                  <p className="mt-2 text-xs leading-6 text-white/55">Authenticated mode is active. API requests now use your JWT token. 已啟用登入模式，API 會以你的 token 身份讀寫資料。</p>
+                  <button
+                    className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                    onClick={() => {
+                      logout();
+                      navigate('/auth');
+                    }}
+                    type="button"
+                  >
+                    Logout 登出
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </aside>
 
         <main className="space-y-6">
-          <Outlet context={{ userEmail: props.userEmail, month: props.month }} />
+          <Outlet context={{ month: props.month }} />
         </main>
       </div>
     </div>

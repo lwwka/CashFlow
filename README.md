@@ -6,7 +6,11 @@ MVP scaffold for a monthly income/expense tracking tool.
 
 - `db/migrations/0001_init.sql`: PostgreSQL initial schema.
 - `backend/`: NestJS API scaffold.
-- `docs/wireframes.md`: MVP UI wireframes.
+- `docs/`: architecture notes, testing docs, ERD, work summaries, and UI wireframes.
+
+Documentation index:
+
+- `docs/README.md`
 
 ## Quick Start (Backend)
 
@@ -30,8 +34,37 @@ PGPORT=5432
 PGUSER=postgres
 PGPASSWORD=your_postgres_password
 PGDATABASE=cashflow
+JWT_SECRET=change_me_to_a_long_random_secret
+JWT_EXPIRES_IN=7d
 DATABASE_URL="postgresql://postgres:your_postgres_password@localhost:5432/cashflow"
 ```
+
+## Auth Progress
+
+The project now includes a basic JWT authentication foundation:
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+
+Core business endpoints are in a transition state:
+
+- if a valid Bearer token is present, the backend prefers authenticated user context
+- if no token is present yet, the existing `userEmail` request flow still works
+
+This is a temporary bridge while the app moves away from request-level `userEmail`.
+
+## Schema Source Of Truth
+
+Current rule:
+
+- SQL-first for schema intent and PostgreSQL-specific features
+- Prisma schema is used as runtime ORM schema and tooling mirror
+
+Important note:
+
+- Prisma does not fully model PostgreSQL `UNIQUE NULLS NOT DISTINCT`
+- the reset workflow re-applies PostgreSQL-specific fixes after Prisma schema reset
 
 ## Load Demo Data From Swagger
 
@@ -100,6 +133,34 @@ Use this when the schema already exists and you only want to reload demo data:
 cd backend
 npm run db:seed
 ```
+
+## Backend E2E Tests
+
+Create a dedicated test environment file first:
+
+```bash
+cd backend
+copy .env.test.example .env.test
+```
+
+Update `DATABASE_URL` in `.env.test` to point to a separate PostgreSQL database such as `cashflow_test`.
+
+Then run the e2e suite:
+
+```bash
+cd backend
+npm install
+npm run test:e2e
+```
+
+Current e2e coverage focuses on:
+
+- auth register and profile lookup
+- protected core CRUD access rules
+- category creation
+- transaction creation and listing
+- budget upsert and listing
+- monthly overview aggregation
 
 ## Frontend
 

@@ -3,10 +3,10 @@ import { useOutletContext } from 'react-router-dom';
 import { MetricCard } from '../components/MetricCard';
 import { Panel } from '../components/Panel';
 import { useCashflowData } from '../hooks/useCashflowData';
+import { useAuth } from '../providers/AuthProvider';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
-  userEmail: string;
   month: string;
 }
 
@@ -19,8 +19,9 @@ function formatCurrency(value: number): string {
 }
 
 export function DashboardPage(): JSX.Element {
-  const { userEmail, month } = useOutletContext<ShellContext>();
-  const { overview, transactions, budgets, isLoading, error } = useCashflowData(userEmail, month);
+  const { month } = useOutletContext<ShellContext>();
+  const { profile } = useAuth();
+  const { overview, transactions, budgets, isLoading, error } = useCashflowData(month);
   const { t } = usePreferences();
 
   return (
@@ -37,7 +38,7 @@ export function DashboardPage(): JSX.Element {
             <dl className="mt-5 grid gap-4 text-sm">
               <div>
                 <dt className="text-white/45">{t('dashboard.user')}</dt>
-                <dd className="mt-1 text-base text-sand">{userEmail}</dd>
+                <dd className="mt-1 text-base text-sand">{profile?.email ?? '-'}</dd>
               </div>
               <div>
                 <dt className="text-white/45">{t('shell.month')}</dt>
