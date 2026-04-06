@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
 import { useCategories } from '../hooks/useCategories';
-import { createCategory } from '../lib/api';
+import { useCategoryMutations } from '../hooks/useCategoryMutations';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
@@ -15,22 +15,22 @@ export function CategoriesPage(): JSX.Element {
   const { categories, error, reload } = useCategories();
   const { t } = usePreferences();
   const [form, setForm] = useState({ name: '', type: 'expense' });
-  const [status, setStatus] = useState<string | null>(null);
+  const { status, isSaving, create } = useCategoryMutations({
+    onAfterCreate: async () => reload(),
+    onErrorMessage: t('status.failedCategory'),
+    onSavedMessage: t('categories.saved'),
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setStatus(null);
 
-    try {
-      await createCategory({
-        name: form.name,
-        type: form.type as 'income' | 'expense',
-      });
+    const didCreate = await create({
+      name: form.name,
+      type: form.type as 'income' | 'expense',
+    });
+
+    if (didCreate) {
       setForm({ name: '', type: 'expense' });
-      setStatus(t('categories.saved'));
-      await reload();
-    } catch (nextError) {
-      setStatus(nextError instanceof Error ? nextError.message : t('status.failedCategory'));
     }
   }
 
@@ -58,7 +58,7 @@ export function CategoriesPage(): JSX.Element {
               <option value="income">{t('transactions.type.income')}</option>
             </select>
           </label>
-          <button className="primary-button w-full" type="submit">
+          <button className="primary-button w-full" disabled={isSaving} type="submit">
             {t('categories.save')}
           </button>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}

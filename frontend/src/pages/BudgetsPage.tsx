@@ -2,9 +2,9 @@ import { FormEvent, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
+import { useBudgetMutations } from '../hooks/useBudgetMutations';
 import { useBudgets } from '../hooks/useBudgets';
 import { useCategories } from '../hooks/useCategories';
-import { upsertBudget } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
@@ -26,23 +26,19 @@ export function BudgetsPage(): JSX.Element {
   const { t } = usePreferences();
   const error = budgetsError ?? categoriesError;
   const [form, setForm] = useState({ amount: '0', categoryId: '' });
-  const [status, setStatus] = useState<string | null>(null);
+  const { status, isSaving, upsert } = useBudgetMutations({
+    onAfterUpsert: async () => Promise.all([reloadBudgets(), reloadCategories()]).then(() => undefined),
+    onErrorMessage: t('status.failedBudget'),
+    onSavedMessage: t('budgets.saved'),
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setStatus(null);
-
-    try {
-      await upsertBudget({
-        month,
-        amount: Number(form.amount),
-        categoryId: form.categoryId || undefined,
-      });
-      setStatus(t('budgets.saved'));
-      await Promise.all([reloadBudgets(), reloadCategories()]);
-    } catch (nextError) {
-      setStatus(nextError instanceof Error ? nextError.message : t('status.failedBudget'));
-    }
+    await upsert({
+      month,
+      amount: Number(form.amount),
+      categoryId: form.categoryId || undefined,
+    });
   }
 
   return (
@@ -77,7 +73,7 @@ export function BudgetsPage(): JSX.Element {
               onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
             />
           </label>
-          <button className="primary-button w-full" type="submit">
+          <button className="primary-button w-full" disabled={isSaving} type="submit">
             {t('budgets.save')}
           </button>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}

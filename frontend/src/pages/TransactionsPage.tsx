@@ -3,8 +3,8 @@ import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
 import { useCategories } from '../hooks/useCategories';
+import { useTransactionMutations } from '../hooks/useTransactionMutations';
 import { useTransactions } from '../hooks/useTransactions';
-import { createTransaction, deleteTransaction } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
@@ -26,8 +26,6 @@ export function TransactionsPage(): JSX.Element {
   const { t } = usePreferences();
   const isLoading = isTransactionsLoading || isCategoriesLoading;
   const error = transactionsError ?? categoriesError;
-  const [status, setStatus] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     type: 'expense',
     amount: '0',
@@ -35,34 +33,31 @@ export function TransactionsPage(): JSX.Element {
     categoryId: '',
     note: '',
   });
+  const { status, isSaving, create, remove } = useTransactionMutations({
+    onAfterCreate: async () => Promise.all([reloadTransactions(), reloadCategories()]).then(() => undefined),
+    onAfterDelete: async () => reloadTransactions(),
+    onErrorMessage: t('status.failedTransaction'),
+    onSavedMessage: t('transactions.saved'),
+    onDeletedMessage: t('transactions.deleted'),
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    setIsSaving(true);
-    setStatus(null);
+    const didCreate = await create({
+      type: form.type as 'income' | 'expense',
+      amount: Number(form.amount),
+      occurredOn: form.occurredOn,
+      categoryId: form.categoryId || undefined,
+      note: form.note || undefined,
+    });
 
-    try {
-      await createTransaction({
-        type: form.type as 'income' | 'expense',
-        amount: Number(form.amount),
-        occurredOn: form.occurredOn,
-        categoryId: form.categoryId || undefined,
-        note: form.note || undefined,
-      });
+    if (didCreate) {
       setForm((current) => ({ ...current, amount: '0', note: '' }));
-      setStatus(t('transactions.saved'));
-      await Promise.all([reloadTransactions(), reloadCategories()]);
-    } catch (nextError) {
-      setStatus(nextError instanceof Error ? nextError.message : t('status.failedTransaction'));
-    } finally {
-      setIsSaving(false);
     }
   }
 
   async function handleDelete(id: string): Promise<void> {
-    await deleteTransaction(id);
-    setStatus(t('transactions.deleted'));
-    await reloadTransactions();
+    await remove(id);
   }
 
   return (
