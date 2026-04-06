@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #e6edf3;
+  --app-background:
+    radial-gradient(circle at top left, rgba(94, 234, 212, 0.14), transparent 35%),
+    radial-gradient(circle at top right, rgba(251, 113, 133, 0.18), transparent 28%),
+    linear-gradient(180deg, #08121f 0%, #0d1726 45%, #111f31 100%);
+  background: var(--app-background);
+  font-family: "Aptos", "Segoe UI Variable Text", "Trebuchet MS", sans-serif;
+}
+
+:root[data-theme='light'] {
+  color: #132238;
+  --app-background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 26%),
+    radial-gradient(circle at top right, rgba(212, 177, 97, 0.14), transparent 18%),
+    linear-gradient(180deg, #f7efe2 0%, #fcf8f1 44%, #f1eadf 100%);
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: transparent;
+}
+
+@layer base {
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight text-sand;
+  }
+
+  p, span, label, input, select, button {
+    @apply font-body;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-3xl border border-white/10 bg-white/5 shadow-float backdrop-blur;
+  }
+
+  .section-heading {
+    @apply text-xl font-semibold text-sand;
+  }
+
+  .field {
+    @apply flex flex-col gap-2;
+  }
+
+  .field-label {
+    @apply text-xs uppercase tracking-[0.18em] text-white/55;
+  }
+
+  .text-input {
+    @apply rounded-2xl border border-white/10 bg-slate px-4 py-3 text-sm text-white placeholder:text-white/35 focus:border-reef/70 focus:outline-none;
+  }
+
+  .primary-button {
+    @apply rounded-2xl bg-tide px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .danger-button {
+    @apply rounded-2xl border border-coral/30 bg-coral/10 px-3 py-2 text-sm font-semibold text-coral transition hover:bg-coral/20;
+  }
+}
+
+:root[data-theme='light'] .glass-panel {
+  background: rgba(255, 252, 245, 0.88);
+  border-color: rgba(19, 34, 56, 0.08);
+  box-shadow: 0 24px 60px rgba(19, 34, 56, 0.08);
+}
+
+:root[data-theme='light'] body {
+  background-image:
+    linear-gradient(transparent 0%, transparent 96%, rgba(19, 34, 56, 0.025) 100%),
+    linear-gradient(90deg, transparent 0%, transparent 96%, rgba(19, 34, 56, 0.02) 100%),
+    var(--app-background);
+  background-size: 100% 28px, 28px 100%, auto;
+}
+
+:root[data-theme='light'] h1,
+:root[data-theme='light'] h2,
+:root[data-theme='light'] h3,
+:root[data-theme='light'] h4 {
+  color: #132238;
+}
+
+:root[data-theme='light'] p,
+:root[data-theme='light'] span,
+:root[data-theme='light'] label,
+:root[data-theme='light'] dt,
+:root[data-theme='light'] dd,
+:root[data-theme='light'] a {
+  color: #2b3d55;
+}
+
+:root[data-theme='light'] .text-input {
+  border-color: rgba(19, 34, 56, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: #132238;
+}
+
+:root[data-theme='light'] .text-input::placeholder {
+  color: rgba(43, 61, 85, 0.42);
+}
+
+:root[data-theme='light'] .field-label {
+  color: rgba(43, 61, 85, 0.68);
+}
+
+:root[data-theme='light'] .primary-button {
+  background: #0f766e;
+  color: #fffdf8;
+}
+
+:root[data-theme='light'] .primary-button:hover {
+  background: #0b5f59;
+}
+
+:root[data-theme='light'] .danger-button {
+  border-color: rgba(190, 24, 93, 0.18);
+  background: rgba(251, 113, 133, 0.08);
+  color: #be185d;
+}
+
+:root[data-theme='light'] .danger-button:hover {
+  background: rgba(251, 113, 133, 0.14);
+}
+
+:root[data-theme='light'] .text-white\/65,
+:root[data-theme='light'] .text-white\/70,
+:root[data-theme='light'] .text-white\/55,
+:root[data-theme='light'] .text-white\/50,
+:root[data-theme='light'] .text-white\/45 {
+  color: rgba(43, 61, 85, 0.72) !important;
+}
+
+:root[data-theme='light'] .bg-white\/5 {
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+:root[data-theme='light'] .border-white\/10 {
+  border-color: rgba(19, 34, 56, 0.08) !important;
+}
+
+:root[data-theme='light'] .bg-black\/15,
+:root[data-theme='light'] .bg-ink\/60 {
+  background: rgba(255, 250, 242, 0.92) !important;
+}
+
+:root[data-theme='light'] .text-sand {
+  color: #132238 !important;
+}
+
+:root[data-theme='light'] .text-coral {
+  color: #be185d !important;
+}
+
+:root[data-theme='light'] .text-reef {
+  color: #0f766e !important;
+}

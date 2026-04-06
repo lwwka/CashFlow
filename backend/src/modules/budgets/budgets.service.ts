@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 
@@ -14,7 +14,16 @@ export interface BudgetRecord {
 export class BudgetsService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async list(month: string, userEmail = 'demo@cashflow.local'): Promise<{ month: string; items: BudgetRecord[] }> {
+  private requireUserEmail(userEmail?: string): string {
+    if (!userEmail) {
+      throw new BadRequestException('userEmail is required');
+    }
+
+    return userEmail;
+  }
+
+  async list(month: string, userEmail?: string): Promise<{ month: string; items: BudgetRecord[] }> {
+    const email = this.requireUserEmail(userEmail);
     const result = await this.databaseService.query<{
       id: string;
       month: string;
@@ -36,7 +45,7 @@ export class BudgetsService {
           AND b.month = $2
         ORDER BY c.name ASC NULLS FIRST, b.created_at ASC
       `,
-      [userEmail, month],
+      [email, month],
     );
 
     return {
@@ -57,6 +66,24 @@ export class BudgetsService {
     categoryId?: string;
     amount: number;
   }): Promise<BudgetRecord> {
+    const email = this.requireUserEmail(input.userEmail);
+    if (input.categoryId) {
+      const categoryCheck = await this.databaseService.query<{ id: string }>(
+        `
+          SELECT c.id
+          FROM categories c
+          JOIN users u ON u.id = c.user_id
+          WHERE u.email = $1
+            AND c.id = $2::uuid
+        `,
+        [email, input.categoryId],
+      );
+
+      if (categoryCheck.rowCount === 0) {
+        throw new BadRequestException(`Category ${input.categoryId} does not belong to user ${email}`);
+      }
+    }
+
     const result = await this.databaseService.query<{
       id: string;
       month: string;
@@ -72,7 +99,7 @@ export class BudgetsService {
         ),
         written_budget AS (
           INSERT INTO budgets (user_id, category_id, month, amount)
-          SELECT tu.id, $2, $3, $4
+          SELECT tu.id, $2::uuid, $3, $4
           FROM target_user tu
           ON CONFLICT (user_id, month, category_id)
           DO UPDATE SET
@@ -84,8 +111,12 @@ export class BudgetsService {
         FROM written_budget wb
         LEFT JOIN categories c ON c.id = wb.category_id
       `,
-      [input.userEmail ?? 'demo@cashflow.local', input.categoryId ?? null, input.month, input.amount],
+      [email, input.categoryId ?? null, input.month, input.amount],
     );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(`User not found for email ${email}`);
+    }
 
     const row = result.rows[0];
     return {
@@ -97,8 +128,9 @@ export class BudgetsService {
     };
   }
 
-  async remove(id: string, userEmail = 'demo@cashflow.local'): Promise<{ id: string; deleted: true }> {
-    await this.databaseService.query(
+  async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
+    const email = this.requireUserEmail(userEmail);
+    const result = await this.databaseService.query(
       `
         DELETE FROM budgets b
         USING users u
@@ -106,8 +138,12 @@ export class BudgetsService {
           AND u.id = b.user_id
           AND u.email = $2
       `,
-      [id, userEmail],
+      [id, email],
     );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(`Budget ${id} not found`);
+    }
 
     return { id, deleted: true };
   }

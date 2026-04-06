@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsArray, IsEmail, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Matches, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -133,6 +133,10 @@ export class DevSeedController {
     userEmail: string;
     inserted: { categories: number; transactions: number; budgets: number };
   }> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('dev seed is disabled in production');
+    }
+
     return this.devSeedService.load(body);
   }
 }

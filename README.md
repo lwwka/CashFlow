@@ -57,6 +57,22 @@ Generated file:
 
 - `docs/prisma-erd.svg`
 
+## Frontend
+
+The repo now includes a React + Vite + TypeScript frontend in `frontend/`.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend app:
+
+- `http://localhost:5173`
+
+The Vite dev server proxies `/api/*` to the Nest backend on `http://localhost:3000`.
+
 ## Security Baseline
 
 - Global input validation with `ValidationPipe` (`whitelist`, `forbidNonWhitelisted`).

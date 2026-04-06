@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 
@@ -18,7 +18,16 @@ export interface TransactionRecord {
 export class TransactionsService {
   constructor(private readonly databaseService: DatabaseService) {}
 
+  private requireUserEmail(userEmail?: string): string {
+    if (!userEmail) {
+      throw new BadRequestException('userEmail is required');
+    }
+
+    return userEmail;
+  }
+
   async list(query: { userEmail?: string; month?: string; q?: string }): Promise<TransactionRecord[]> {
+    const email = this.requireUserEmail(query.userEmail);
     const result = await this.databaseService.query<{
       id: string;
       type: TransactionType;
@@ -50,7 +59,7 @@ export class TransactionsService {
           AND t.deleted_at IS NULL
         ORDER BY t.occurred_on DESC, t.created_at DESC
       `,
-      [query.userEmail ?? 'demo@cashflow.local', query.month ?? null, query.q ?? null],
+      [email, query.month ?? null, query.q ?? null],
     );
 
     return result.rows.map((row) => ({
@@ -72,6 +81,24 @@ export class TransactionsService {
     categoryId?: string;
     note?: string;
   }): Promise<TransactionRecord> {
+    const email = this.requireUserEmail(input.userEmail);
+    if (input.categoryId) {
+      const categoryCheck = await this.databaseService.query<{ id: string }>(
+        `
+          SELECT c.id
+          FROM categories c
+          JOIN users u ON u.id = c.user_id
+          WHERE u.email = $1
+            AND c.id = $2::uuid
+        `,
+        [email, input.categoryId],
+      );
+
+      if (categoryCheck.rowCount === 0) {
+        throw new BadRequestException(`Category ${input.categoryId} does not belong to user ${email}`);
+      }
+    }
+
     const result = await this.databaseService.query<{
       id: string;
       type: TransactionType;
@@ -96,7 +123,7 @@ export class TransactionsService {
           note
       `,
       [
-        input.userEmail ?? 'demo@cashflow.local',
+        email,
         input.categoryId ?? null,
         input.type,
         input.amount,
@@ -104,6 +131,10 @@ export class TransactionsService {
         input.note ?? null,
       ],
     );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(`User not found for email ${email}`);
+    }
 
     const row = result.rows[0];
     return {
@@ -128,6 +159,24 @@ export class TransactionsService {
       note?: string;
     },
   ): Promise<TransactionRecord> {
+    const email = this.requireUserEmail(input.userEmail);
+    if (input.categoryId) {
+      const categoryCheck = await this.databaseService.query<{ id: string }>(
+        `
+          SELECT c.id
+          FROM categories c
+          JOIN users u ON u.id = c.user_id
+          WHERE u.email = $1
+            AND c.id = $2::uuid
+        `,
+        [email, input.categoryId],
+      );
+
+      if (categoryCheck.rowCount === 0) {
+        throw new BadRequestException(`Category ${input.categoryId} does not belong to user ${email}`);
+      }
+    }
+
     const result = await this.databaseService.query<{
       id: string;
       type: TransactionType;
@@ -166,7 +215,7 @@ export class TransactionsService {
       `,
       [
         id,
-        input.userEmail ?? 'demo@cashflow.local',
+        email,
         input.type ?? null,
         input.amount ?? null,
         input.occurredOn ?? null,
@@ -174,6 +223,10 @@ export class TransactionsService {
         input.note ?? null,
       ],
     );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(`Transaction ${id} not found`);
+    }
 
     const row = result.rows[0];
     return {
@@ -187,8 +240,9 @@ export class TransactionsService {
     };
   }
 
-  async remove(id: string, userEmail = 'demo@cashflow.local'): Promise<{ id: string; deleted: true }> {
-    await this.databaseService.query(
+  async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
+    const email = this.requireUserEmail(userEmail);
+    const result = await this.databaseService.query(
       `
         UPDATE transactions t
         SET
@@ -200,8 +254,12 @@ export class TransactionsService {
           AND u.email = $2
           AND t.deleted_at IS NULL
       `,
-      [id, userEmail],
+      [id, email],
     );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(`Transaction ${id} not found`);
+    }
 
     return { id, deleted: true };
   }

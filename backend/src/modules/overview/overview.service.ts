@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 
@@ -6,12 +6,21 @@ import { DatabaseService } from '../../database/database.service';
 export class OverviewService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async getMonthlyOverview(month: string, userEmail = 'demo@cashflow.local'): Promise<{
+  private requireUserEmail(userEmail?: string): string {
+    if (!userEmail) {
+      throw new BadRequestException('userEmail is required');
+    }
+
+    return userEmail;
+  }
+
+  async getMonthlyOverview(month: string, userEmail?: string): Promise<{
     month: string;
     totalIncome: number;
     totalExpense: number;
     balance: number;
   }> {
+    const email = this.requireUserEmail(userEmail);
     const result = await this.databaseService.query<{
       total_income: string | null;
       total_expense: string | null;
@@ -26,7 +35,7 @@ export class OverviewService {
           AND to_char(t.occurred_on, 'YYYY-MM') = $2
           AND t.deleted_at IS NULL
       `,
-      [userEmail, month],
+      [email, month],
     );
 
     const row = result.rows[0];
