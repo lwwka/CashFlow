@@ -25,6 +25,14 @@ async function bootstrap(): Promise<void> {
     .setTitle('CashFlow API')
     .setDescription('API documentation for the CashFlow MVP backend.')
     .setVersion('0.1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'JWT-auth',
+    )
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, swaggerDocument);

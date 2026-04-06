@@ -1,7 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiProperty, ApiPropertyOptional, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
 
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthUser } from '../auth/auth.service';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { BudgetsService } from './budgets.service';
 
 class BudgetDto {
@@ -38,29 +41,36 @@ class QueryBudgetsDto {
 
 @ApiTags('budgets')
 @Controller('budgets')
+@UseGuards(OptionalJwtAuthGuard)
 export class BudgetsController {
   constructor(private readonly budgetsService: BudgetsService) {}
 
   @Get()
   @ApiQuery({ name: 'month', required: true, example: '2026-04' })
   @ApiQuery({ name: 'userEmail', required: false, example: 'demo@cashflow.local' })
-  list(@Query() query: QueryBudgetsDto): Promise<{ month: string; items: unknown[] }> {
-    return this.budgetsService.list(query.month, query.userEmail);
+  list(@Query() query: QueryBudgetsDto, @CurrentUser() user: AuthUser | null): Promise<{ month: string; items: unknown[] }> {
+    return this.budgetsService.list(query.month, user?.email ?? query.userEmail);
   }
 
   @Post()
-  upsert(@Body() body: BudgetDto): Promise<unknown> {
-    return this.budgetsService.upsert(body);
+  upsert(@Body() body: BudgetDto, @CurrentUser() user: AuthUser | null): Promise<unknown> {
+    return this.budgetsService.upsert({
+      ...body,
+      userEmail: user?.email ?? body.userEmail,
+    });
   }
 
   @Patch()
-  patch(@Body() body: BudgetDto): Promise<unknown> {
-    return this.budgetsService.upsert(body);
+  patch(@Body() body: BudgetDto, @CurrentUser() user: AuthUser | null): Promise<unknown> {
+    return this.budgetsService.upsert({
+      ...body,
+      userEmail: user?.email ?? body.userEmail,
+    });
   }
 
   @Delete(':id')
   @ApiQuery({ name: 'userEmail', required: false, example: 'demo@cashflow.local' })
-  remove(@Param('id') id: string, @Query('userEmail') userEmail?: string): Promise<{ id: string; deleted: true }> {
-    return this.budgetsService.remove(id, userEmail);
+  remove(@Param('id') id: string, @Query('userEmail') userEmail: string | undefined, @CurrentUser() user: AuthUser | null): Promise<{ id: string; deleted: true }> {
+    return this.budgetsService.remove(id, user?.email ?? userEmail);
   }
 }
