@@ -2,7 +2,8 @@ import { FormEvent, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
-import { useCashflowData } from '../hooks/useCashflowData';
+import { useBudgets } from '../hooks/useBudgets';
+import { useCategories } from '../hooks/useCategories';
 import { upsertBudget } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
@@ -20,8 +21,10 @@ function formatCurrency(value: number): string {
 
 export function BudgetsPage(): JSX.Element {
   const { month } = useOutletContext<ShellContext>();
-  const { budgets, categories, reload, error } = useCashflowData(month);
+  const { budgets, error: budgetsError, reload: reloadBudgets } = useBudgets(month);
+  const { categories, error: categoriesError, reload: reloadCategories } = useCategories();
   const { t } = usePreferences();
+  const error = budgetsError ?? categoriesError;
   const [form, setForm] = useState({ amount: '0', categoryId: '' });
   const [status, setStatus] = useState<string | null>(null);
 
@@ -36,7 +39,7 @@ export function BudgetsPage(): JSX.Element {
         categoryId: form.categoryId || undefined,
       });
       setStatus(t('budgets.saved'));
-      await reload();
+      await Promise.all([reloadBudgets(), reloadCategories()]);
     } catch (nextError) {
       setStatus(nextError instanceof Error ? nextError.message : t('status.failedBudget'));
     }

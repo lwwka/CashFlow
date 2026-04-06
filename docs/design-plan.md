@@ -188,7 +188,16 @@ controller、service、frontend pages 出現重複模式時，優先抽 helper /
 
 目標：避免頁面越做越胖，降低維護成本
 
-目前問題：
+目前進度：
+
+- 已開始把全包型 `useCashflowData` 拆開
+- 已建立：
+  - `useOverview`
+  - `useTransactions`
+  - `useCategories`
+  - `useBudgets`
+
+目前仍需持續改善的問題：
 
 - `useCashflowData` 是全包型 hook
 - 部分頁面仍同時負責 form、mutation、status、list rendering
@@ -460,7 +469,16 @@ Recommended next work:
 
 Goal: avoid page bloat and improve maintainability
 
-Current issues:
+Current progress:
+
+- the former all-in-one `useCashflowData` flow has started to be split
+- the project now has:
+  - `useOverview`
+  - `useTransactions`
+  - `useCategories`
+  - `useBudgets`
+
+Remaining issues:
 
 - `useCashflowData` is still an all-in-one hook
 - some pages still combine form logic, mutation logic, status messaging, and list rendering

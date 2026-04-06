@@ -2,7 +2,9 @@ import { useOutletContext } from 'react-router-dom';
 
 import { MetricCard } from '../components/MetricCard';
 import { Panel } from '../components/Panel';
-import { useCashflowData } from '../hooks/useCashflowData';
+import { useBudgets } from '../hooks/useBudgets';
+import { useOverview } from '../hooks/useOverview';
+import { useTransactions } from '../hooks/useTransactions';
 import { useAuth } from '../providers/AuthProvider';
 import { usePreferences } from '../providers/PreferencesProvider';
 
@@ -21,8 +23,12 @@ function formatCurrency(value: number): string {
 export function DashboardPage(): JSX.Element {
   const { month } = useOutletContext<ShellContext>();
   const { profile } = useAuth();
-  const { overview, transactions, budgets, isLoading, error } = useCashflowData(month);
+  const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(month);
+  const { transactions, isLoading: isTransactionsLoading, error: transactionsError } = useTransactions(month);
+  const { budgets, isLoading: isBudgetsLoading, error: budgetsError } = useBudgets(month);
   const { t } = usePreferences();
+  const isLoading = isOverviewLoading || isTransactionsLoading || isBudgetsLoading;
+  const error = overviewError ?? transactionsError ?? budgetsError;
 
   return (
     <>

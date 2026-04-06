@@ -2,7 +2,7 @@ import { FormEvent, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
-import { useCashflowData } from '../hooks/useCashflowData';
+import { useCategories } from '../hooks/useCategories';
 import { createCategory } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
@@ -11,8 +11,8 @@ interface ShellContext {
 }
 
 export function CategoriesPage(): JSX.Element {
-  const { month } = useOutletContext<ShellContext>();
-  const { categories, error, reload } = useCashflowData(month);
+  useOutletContext<ShellContext>();
+  const { categories, error, reload } = useCategories();
   const { t } = usePreferences();
   const [form, setForm] = useState({ name: '', type: 'expense' });
   const [status, setStatus] = useState<string | null>(null);

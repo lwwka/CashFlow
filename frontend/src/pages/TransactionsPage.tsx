@@ -2,7 +2,8 @@ import { FormEvent, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
-import { useCashflowData } from '../hooks/useCashflowData';
+import { useCategories } from '../hooks/useCategories';
+import { useTransactions } from '../hooks/useTransactions';
 import { createTransaction, deleteTransaction } from '../lib/api';
 import { usePreferences } from '../providers/PreferencesProvider';
 
@@ -20,8 +21,11 @@ function formatCurrency(value: number): string {
 
 export function TransactionsPage(): JSX.Element {
   const { month } = useOutletContext<ShellContext>();
-  const { transactions, categories, isLoading, error, reload } = useCashflowData(month);
+  const { transactions, isLoading: isTransactionsLoading, error: transactionsError, reload: reloadTransactions } = useTransactions(month);
+  const { categories, isLoading: isCategoriesLoading, error: categoriesError, reload: reloadCategories } = useCategories();
   const { t } = usePreferences();
+  const isLoading = isTransactionsLoading || isCategoriesLoading;
+  const error = transactionsError ?? categoriesError;
   const [status, setStatus] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
@@ -47,7 +51,7 @@ export function TransactionsPage(): JSX.Element {
       });
       setForm((current) => ({ ...current, amount: '0', note: '' }));
       setStatus(t('transactions.saved'));
-      await reload();
+      await Promise.all([reloadTransactions(), reloadCategories()]);
     } catch (nextError) {
       setStatus(nextError instanceof Error ? nextError.message : t('status.failedTransaction'));
     } finally {
@@ -58,7 +62,7 @@ export function TransactionsPage(): JSX.Element {
   async function handleDelete(id: string): Promise<void> {
     await deleteTransaction(id);
     setStatus(t('transactions.deleted'));
-    await reload();
+    await reloadTransactions();
   }
 
   return (
