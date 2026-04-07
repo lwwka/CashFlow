@@ -1,5 +1,7 @@
 # CashFlow
 
+[![CI](https://github.com/lwwka/CashFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/lwwka/CashFlow/actions/workflows/ci.yml)
+
 MVP scaffold for a monthly income/expense tracking tool.
 
 ## Project Structure
