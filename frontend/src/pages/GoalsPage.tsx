@@ -11,6 +11,8 @@ import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
   month: string;
+  fromDate: string;
+  toDate: string;
 }
 
 function formatCurrency(value: number): string {
@@ -63,9 +65,12 @@ function getGoalStatus(
 }
 
 export function GoalsPage(): JSX.Element {
-  const { month } = useOutletContext<ShellContext>();
+  const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const { t } = usePreferences();
-  const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(month);
+  const hasCustomRange = Boolean(fromDate && toDate);
+  const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(
+    hasCustomRange ? { from: fromDate, to: toDate } : { month },
+  );
   const { monthlyGoal, isLoading: isGoalLoading, error: goalError, reload: reloadGoal } = useMonthlyGoal(month);
   const [goalInput, setGoalInput] = useState('');
   const { status: goalStatusMessage, isSaving: isSavingGoal, save } = useMonthlyGoalMutations({
@@ -114,6 +119,9 @@ export function GoalsPage(): JSX.Element {
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">
               Focus this page on one thing: whether this month is still on track for your savings target and how much room you have left to correct course.
             </p>
+            {hasCustomRange ? (
+              <p className="mt-4 text-sm leading-7 text-sand">{t('shell.goalsRangeHint')}</p>
+            ) : null}
           </div>
           <div className="rounded-[28px] border border-white/10 bg-black/15 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-white/50">{t('dashboard.goalStatus')}</p>

@@ -11,6 +11,8 @@ import type { Budget, Transaction } from '../types';
 
 interface ShellContext {
   month: string;
+  fromDate: string;
+  toDate: string;
 }
 
 function formatCurrency(value: number): string {
@@ -62,10 +64,12 @@ function buildBudgetComparison(
 }
 
 export function DashboardPage(): JSX.Element {
-  const { month } = useOutletContext<ShellContext>();
+  const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const { profile } = useAuth();
-  const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(month);
-  const { transactions, isLoading: isTransactionsLoading, error: transactionsError } = useTransactions(month);
+  const hasCustomRange = Boolean(fromDate && toDate);
+  const filter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
+  const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(filter);
+  const { transactions, isLoading: isTransactionsLoading, error: transactionsError } = useTransactions(filter);
   const { budgets, isLoading: isBudgetsLoading, error: budgetsError } = useBudgets(month);
   const { t } = usePreferences();
   const isLoading = isOverviewLoading || isTransactionsLoading || isBudgetsLoading;
@@ -91,7 +95,7 @@ export function DashboardPage(): JSX.Element {
               </div>
               <div>
                 <dt className="text-white/45">{t('shell.month')}</dt>
-                <dd className="mt-1 text-base text-sand">{month}</dd>
+                <dd className="mt-1 text-base text-sand">{hasCustomRange ? `${fromDate} → ${toDate}` : month}</dd>
               </div>
               <div>
                 <dt className="text-white/45">{t('dashboard.status')}</dt>
@@ -104,6 +108,12 @@ export function DashboardPage(): JSX.Element {
 
       {error ? (
         <div className="rounded-3xl border border-coral/30 bg-coral/10 px-5 py-4 text-sm text-coral">{error}</div>
+      ) : null}
+
+      {hasCustomRange ? (
+        <div className="rounded-3xl border border-sand/20 bg-sand/10 px-5 py-4 text-sm text-sand">
+          {t('shell.dashboardRangeHint')}
+        </div>
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-3">

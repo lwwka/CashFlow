@@ -16,6 +16,18 @@ export interface TransactionRecord {
   note?: string;
 }
 
+export interface ImportRowsResult {
+  imported: number;
+  skipped: number;
+  skippedRows: Array<{
+    occurredOn: string;
+    type: TransactionType;
+    amount: number;
+    categoryName?: string;
+    note?: string;
+  }>;
+}
+
 @Injectable()
 export class TransactionsService {
   constructor(
@@ -43,22 +55,41 @@ export class TransactionsService {
     };
   }
 
-  async list(query: { email: string; month?: string; q?: string }): Promise<TransactionRecord[]> {
-    const monthStart = query.month ? new Date(`${query.month}-01T00:00:00.000Z`) : null;
-    const monthEnd = monthStart ? new Date(monthStart) : null;
-    if (monthEnd) {
-      monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1);
+  private normalizeImportedAmount(value: unknown): number {
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    return Number(String(value ?? '').replace(/[$,\s]/g, ''));
+  }
+
+  async list(query: { email: string; month?: string; from?: string; to?: string; q?: string }): Promise<TransactionRecord[]> {
+    let rangeStart: Date | null = null;
+    let rangeEndExclusive: Date | null = null;
+
+    if (query.from && query.to) {
+      rangeStart = new Date(`${query.from}T00:00:00.000Z`);
+      rangeEndExclusive = new Date(`${query.to}T00:00:00.000Z`);
+      rangeEndExclusive.setUTCDate(rangeEndExclusive.getUTCDate() + 1);
+    } else if (query.month) {
+      rangeStart = new Date(`${query.month}-01T00:00:00.000Z`);
+      rangeEndExclusive = new Date(rangeStart);
+      rangeEndExclusive.setUTCMonth(rangeEndExclusive.getUTCMonth() + 1);
+    }
+
+    if (rangeStart && rangeEndExclusive && rangeEndExclusive <= rangeStart) {
+      throw new BadRequestException('to must be later than or equal to from');
     }
 
     const transactions = await this.prisma.transaction.findMany({
       where: {
         user: { email: query.email },
         deletedAt: null,
-        ...(monthStart && monthEnd
+        ...(rangeStart && rangeEndExclusive
           ? {
               occurredOn: {
-                gte: monthStart,
-                lt: monthEnd,
+                gte: rangeStart,
+                lt: rangeEndExclusive,
               },
             }
           : {}),
@@ -110,6 +141,112 @@ export class TransactionsService {
     });
 
     return this.toRecord(transaction);
+  }
+
+  async importRows(input: {
+    email: string;
+    rows: Array<{
+      occurredOn: string;
+      type: TransactionType;
+      amount: unknown;
+      categoryName?: string;
+      note?: string;
+    }>;
+  }): Promise<ImportRowsResult> {
+    if (!input.rows.length) {
+      throw new BadRequestException('rows must not be empty');
+    }
+
+    const userId = await this.userScope.getUserIdOrThrow(input.email);
+    const categoryCache = new Map<string, string>();
+    let imported = 0;
+    let skipped = 0;
+    const skippedRows: ImportRowsResult['skippedRows'] = [];
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const row of input.rows) {
+        const amount = this.normalizeImportedAmount(row.amount);
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+          throw new BadRequestException(`Invalid import amount for occurredOn ${row.occurredOn}`);
+        }
+
+        const occurredOn = new Date(`${row.occurredOn}T00:00:00.000Z`);
+        const normalizedNote = row.note?.trim() ? row.note.trim() : null;
+
+        let categoryId: string | null = null;
+
+        if (row.categoryName?.trim()) {
+          const normalizedCategoryName = row.categoryName.trim();
+          const cacheKey = `${row.type}:${normalizedCategoryName.toLowerCase()}`;
+          categoryId = categoryCache.get(cacheKey) ?? null;
+
+          if (!categoryId) {
+            const category = await tx.category.upsert({
+              where: {
+                userId_name_type: {
+                  userId,
+                  name: normalizedCategoryName,
+                  type: row.type,
+                },
+              },
+              update: {},
+              create: {
+                userId,
+                name: normalizedCategoryName,
+                type: row.type,
+              },
+              select: {
+                id: true,
+              },
+            });
+
+            categoryId = category.id;
+            categoryCache.set(cacheKey, category.id);
+          }
+        }
+
+        const existing = await tx.transaction.findFirst({
+          where: {
+            userId,
+            deletedAt: null,
+            occurredOn,
+            type: row.type,
+            amount,
+            categoryId,
+            note: normalizedNote,
+          },
+          select: { id: true },
+        });
+
+        if (existing) {
+          skipped += 1;
+          skippedRows.push({
+            occurredOn: row.occurredOn,
+            type: row.type,
+            amount,
+            categoryName: row.categoryName?.trim() || undefined,
+            note: normalizedNote ?? undefined,
+          });
+          continue;
+        }
+
+        await tx.transaction.create({
+          data: {
+            userId,
+            categoryId,
+            type: row.type,
+            amount,
+            occurredOn,
+            note: normalizedNote,
+          },
+        });
+
+        imported += 1;
+      }
+    });
+
+    return { imported, skipped, skippedRows };
   }
 
   async update(

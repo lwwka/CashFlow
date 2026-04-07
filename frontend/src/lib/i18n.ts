@@ -12,6 +12,14 @@ export type TranslationKey =
   | 'shell.filters'
   | 'shell.userEmail'
   | 'shell.month'
+  | 'shell.monthHint'
+  | 'shell.fromDate'
+  | 'shell.toDate'
+  | 'shell.customRangeHint'
+  | 'shell.rangeModeMonth'
+  | 'shell.rangeModeCustom'
+  | 'shell.dashboardRangeHint'
+  | 'shell.goalsRangeHint'
   | 'dashboard.eyebrow'
   | 'dashboard.title'
   | 'dashboard.description'
@@ -71,6 +79,33 @@ export type TranslationKey =
   | 'transactions.note.placeholder'
   | 'transactions.categoryHint'
   | 'transactions.amountRequired'
+  | 'transactions.import'
+  | 'transactions.importDescription'
+  | 'transactions.importFormat'
+  | 'transactions.importPasteHint'
+  | 'transactions.importPreview'
+  | 'transactions.importRows'
+  | 'transactions.importInvalidRows'
+  | 'transactions.importLine'
+  | 'transactions.importFixHint'
+  | 'transactions.importIssueDate'
+  | 'transactions.importIssueType'
+  | 'transactions.importIssueAmount'
+  | 'transactions.importRawRow'
+  | 'transactions.importMoreIssues'
+  | 'transactions.importButton'
+  | 'transactions.importing'
+  | 'transactions.imported'
+  | 'transactions.importSkipped'
+  | 'transactions.importSkippedList'
+  | 'transactions.importSkippedMore'
+  | 'transactions.importFailed'
+  | 'transactions.importPlaceholder'
+  | 'transactions.downloadTemplate'
+  | 'transactions.templateHint'
+  | 'transactions.uploadFile'
+  | 'transactions.selectedFile'
+  | 'transactions.clearImport'
   | 'transactions.createButton'
   | 'transactions.updateButton'
   | 'transactions.edit'
@@ -142,6 +177,14 @@ const en: Dict = {
   'shell.filters': 'Filters',
   'shell.userEmail': 'User Email',
   'shell.month': 'Month',
+  'shell.monthHint': 'Use Month for normal monthly planning. Budgets still follow this month selector.',
+  'shell.fromDate': 'From date',
+  'shell.toDate': 'To date',
+  'shell.customRangeHint': 'Fill both dates to let Transactions and Reports switch from monthly view to a custom range.',
+  'shell.rangeModeMonth': 'Current mode: monthly view. Transactions, reports, dashboard, and goals use the selected month.',
+  'shell.rangeModeCustom': 'Current mode: custom range. Transactions, reports, dashboard, and goals now use your from/to dates.',
+  'shell.dashboardRangeHint': 'Dashboard cards and transaction insights now use your custom range. Budget cards still use the selected month.',
+  'shell.goalsRangeHint': 'Goal calculations now reflect your custom range, while the savings target editor still saves the selected month target.',
   'dashboard.eyebrow': 'Monthly Pulse',
   'dashboard.title': 'Keep your cash story visible',
   'dashboard.description':
@@ -202,6 +245,33 @@ const en: Dict = {
   'transactions.note.placeholder': 'Lunch, salary, train...',
   'transactions.categoryHint': 'Create matching categories first if the selector is empty.',
   'transactions.amountRequired': 'Enter an amount greater than 0 before saving.',
+  'transactions.import': 'Import Transactions',
+  'transactions.importDescription': 'Fill the template in Excel, then Save As CSV and upload it here to import many days or months at once.',
+  'transactions.importFormat': 'Standard columns: occurredOn,type,amount,categoryName,note',
+  'transactions.importPasteHint': 'You can also copy rows directly from Excel and paste them into the box below.',
+  'transactions.importPreview': 'Preview',
+  'transactions.importRows': 'rows ready',
+  'transactions.importInvalidRows': 'rows need fixes',
+  'transactions.importLine': 'Line',
+  'transactions.importFixHint': 'Fix the invalid rows below before importing.',
+  'transactions.importIssueDate': 'date must be in YYYY-MM-DD format',
+  'transactions.importIssueType': 'type must be income or expense',
+  'transactions.importIssueAmount': 'amount must be a number greater than 0',
+  'transactions.importRawRow': 'Raw row',
+  'transactions.importMoreIssues': 'More invalid rows exist. Keep fixing them in the source data and paste again.',
+  'transactions.importButton': 'Import Transactions',
+  'transactions.importing': 'Importing...',
+  'transactions.imported': 'transactions imported.',
+  'transactions.importSkipped': 'duplicate rows skipped.',
+  'transactions.importSkippedList': 'Skipped duplicate rows',
+  'transactions.importSkippedMore': 'More duplicate rows were skipped. Adjust your source data if you want to import new ones only.',
+  'transactions.importFailed': 'Failed to import transactions',
+  'transactions.importPlaceholder': 'occurredOn,type,amount,categoryName,note',
+  'transactions.downloadTemplate': 'Download CSV Template',
+  'transactions.templateHint': 'Recommended flow: open the template in Excel, fill your rows, then use Save As -> CSV before uploading.',
+  'transactions.uploadFile': 'Upload CSV File',
+  'transactions.selectedFile': 'Selected file',
+  'transactions.clearImport': 'Clear import data',
   'transactions.createButton': 'Create Transaction',
   'transactions.updateButton': 'Update Transaction',
   'transactions.edit': 'Edit',
@@ -272,6 +342,14 @@ const zh: Dict = {
   'shell.filters': '篩選',
   'shell.userEmail': '使用者電郵',
   'shell.month': '月份',
+  'shell.monthHint': '一般每月規劃請用月份。預算相關卡片仍會跟這個月份走。',
+  'shell.fromDate': '開始日期',
+  'shell.toDate': '結束日期',
+  'shell.customRangeHint': '同時填入開始和結束日期後，交易與報表頁會由單月模式切換成自訂時間範圍。',
+  'shell.rangeModeMonth': '目前模式：單月檢視。交易、報表、總覽與目標都會使用所選月份。',
+  'shell.rangeModeCustom': '目前模式：自訂時間。交易、報表、總覽與目標會改用你設定的開始/結束日期。',
+  'shell.dashboardRangeHint': '總覽卡片與交易洞察已改用自訂時間範圍；預算卡片仍維持所選月份。',
+  'shell.goalsRangeHint': '目標頁的數字已改用自訂時間範圍；每月儲蓄目標仍會儲存到所選月份。',
   'dashboard.eyebrow': '每月脈搏',
   'dashboard.title': '讓現金流一目了然',
   'dashboard.description': '這個第一版介面會直接讀取 NestJS API，讓你先查看結餘、最近交易與分類預算，之後再擴充圖表與登入功能。',
@@ -331,6 +409,33 @@ const zh: Dict = {
   'transactions.note.placeholder': '午餐、薪水、交通...',
   'transactions.categoryHint': '如果下拉選單沒有選項，請先建立對應類型的分類。',
   'transactions.amountRequired': '請先輸入大於 0 的金額再儲存。',
+  'transactions.import': '匯入交易',
+  'transactions.importDescription': '建議先用 Excel 填範本，再另存為 CSV 後上傳，便可以一次匯入多日或多月份交易。',
+  'transactions.importFormat': '標準欄位：occurredOn,type,amount,categoryName,note',
+  'transactions.importPasteHint': '你也可以直接從 Excel 複製多行資料，再貼到下面輸入框。',
+  'transactions.importPreview': '預覽',
+  'transactions.importRows': '筆資料可匯入',
+  'transactions.importInvalidRows': '筆資料需要修正',
+  'transactions.importLine': '第',
+  'transactions.importFixHint': '請先修正下面有問題的資料列，再進行匯入。',
+  'transactions.importIssueDate': '日期格式必須是 YYYY-MM-DD',
+  'transactions.importIssueType': '類型必須是 income 或 expense',
+  'transactions.importIssueAmount': '金額必須是大於 0 的數字',
+  'transactions.importRawRow': '原始資料列',
+  'transactions.importMoreIssues': '還有更多錯誤列，請先回到來源資料修正後再貼一次。',
+  'transactions.importButton': '匯入交易',
+  'transactions.importing': '匯入中...',
+  'transactions.imported': '筆交易已匯入。',
+  'transactions.importSkipped': '筆重複資料已跳過。',
+  'transactions.importSkippedList': '被跳過的重複資料',
+  'transactions.importSkippedMore': '還有更多重複資料被跳過；如果只想匯入新資料，請先回到來源檔案調整。',
+  'transactions.importFailed': '交易匯入失敗',
+  'transactions.importPlaceholder': 'occurredOn,type,amount,categoryName,note',
+  'transactions.downloadTemplate': '下載 CSV 範本',
+  'transactions.templateHint': '建議流程：先用 Excel 開範本填資料，再用另存新檔 -> CSV，之後再上傳。',
+  'transactions.uploadFile': '上傳 CSV 檔案',
+  'transactions.selectedFile': '已選檔案',
+  'transactions.clearImport': '清除匯入資料',
   'transactions.createButton': '新增交易',
   'transactions.updateButton': '更新交易',
   'transactions.edit': '編輯',

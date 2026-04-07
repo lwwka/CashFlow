@@ -11,15 +11,26 @@ export class OverviewService {
     private readonly userScope: UserScopeService,
   ) {}
 
-  async getMonthlyOverview(month: string, email: string): Promise<{
+  async getMonthlyOverview(filter: { month?: string; from?: string; to?: string }, email: string): Promise<{
     month: string;
     totalIncome: number;
     totalExpense: number;
     balance: number;
   }> {
-    const start = new Date(`${month}-01T00:00:00.000Z`);
-    const end = new Date(start);
-    end.setUTCMonth(end.getUTCMonth() + 1);
+    let label = filter.month ?? new Date().toISOString().slice(0, 7);
+    let start: Date;
+    let end: Date;
+
+    if (filter.from && filter.to) {
+      start = new Date(`${filter.from}T00:00:00.000Z`);
+      end = new Date(`${filter.to}T00:00:00.000Z`);
+      end.setUTCDate(end.getUTCDate() + 1);
+      label = `${filter.from} → ${filter.to}`;
+    } else {
+      start = new Date(`${label}-01T00:00:00.000Z`);
+      end = new Date(start);
+      end.setUTCMonth(end.getUTCMonth() + 1);
+    }
 
     const [incomeAggregate, expenseAggregate] = await Promise.all([
       this.prisma.transaction.aggregate({
@@ -46,7 +57,7 @@ export class OverviewService {
     const totalExpense = Number(expenseAggregate._sum.amount ?? 0);
 
     return {
-      month,
+      month: label,
       totalIncome,
       totalExpense,
       balance: totalIncome - totalExpense,

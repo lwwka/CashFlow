@@ -7,15 +7,19 @@ import { usePreferences } from '../providers/PreferencesProvider';
 
 interface ShellContext {
   month: string;
+  fromDate: string;
+  toDate: string;
 }
 
 type ReportKind = 'transactions' | 'summary';
 
 export function ReportsPage(): JSX.Element {
-  const { month } = useOutletContext<ShellContext>();
+  const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const { t } = usePreferences();
   const [status, setStatus] = useState<string>('');
   const [activeReport, setActiveReport] = useState<ReportKind | null>(null);
+  const hasCustomRange = Boolean(fromDate && toDate);
+  const reportFilter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
 
   async function handleDownload(kind: ReportKind): Promise<void> {
     setActiveReport(kind);
@@ -24,8 +28,8 @@ export function ReportsPage(): JSX.Element {
     try {
       const result =
         kind === 'transactions'
-          ? await downloadTransactionsReport(month)
-          : await downloadSummaryReport(month);
+          ? await downloadTransactionsReport(reportFilter)
+          : await downloadSummaryReport(reportFilter);
       const url = URL.createObjectURL(result.blob);
       const link = document.createElement('a');
 
@@ -55,7 +59,7 @@ export function ReportsPage(): JSX.Element {
           </div>
           <div className="rounded-[28px] border border-white/10 bg-black/15 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-white/50">{t('shell.month')}</p>
-            <p className="mt-4 text-3xl text-sand">{month}</p>
+            <p className="mt-4 text-3xl text-sand">{hasCustomRange ? `${fromDate} → ${toDate}` : month}</p>
             <p className="mt-4 text-sm leading-7 text-white/60">{t('reports.hint')}</p>
           </div>
         </div>

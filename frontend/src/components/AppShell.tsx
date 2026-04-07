@@ -6,6 +6,10 @@ import { usePreferences } from '../providers/PreferencesProvider';
 interface AppShellProps {
   month: string;
   onMonthChange: (value: string) => void;
+  fromDate: string;
+  toDate: string;
+  onFromDateChange: (value: string) => void;
+  onToDateChange: (value: string) => void;
 }
 
 export function AppShell(props: AppShellProps): JSX.Element {
@@ -73,6 +77,29 @@ export function AppShell(props: AppShellProps): JSX.Element {
                     onChange={(event) => props.onMonthChange(event.target.value)}
                   />
                 </label>
+                <p className="text-xs leading-6 text-white/45">{t('shell.monthHint')}</p>
+                <label className="field">
+                  <span className="field-label">{t('shell.fromDate')}</span>
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={props.fromDate}
+                    onChange={(event) => props.onFromDateChange(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">{t('shell.toDate')}</span>
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={props.toDate}
+                    onChange={(event) => props.onToDateChange(event.target.value)}
+                  />
+                </label>
+                <p className="text-xs leading-6 text-white/45">{t('shell.customRangeHint')}</p>
+                <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4 text-xs leading-6 text-white/55">
+                  <p>{props.fromDate && props.toDate ? t('shell.rangeModeCustom') : t('shell.rangeModeMonth')}</p>
+                </div>
                 <label className="field">
                   <span className="field-label">{t('locale.switch')}</span>
                   <select className="text-input" onChange={(event) => setLocale(event.target.value as 'en' | 'zh')} value={locale}>
@@ -113,7 +140,7 @@ export function AppShell(props: AppShellProps): JSX.Element {
         </aside>
 
         <main className="space-y-6">
-          <Outlet context={{ month: props.month }} />
+          <Outlet context={{ month: props.month, fromDate: props.fromDate, toDate: props.toDate }} />
         </main>
       </div>
     </div>

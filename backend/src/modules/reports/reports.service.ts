@@ -8,20 +8,47 @@ function escapeCsvValue(value: string | number | null | undefined): string {
   return `"${raw.replace(/"/g, '""')}"`;
 }
 
+function resolveRange(filter: { month?: string; from?: string; to?: string }): {
+  label: string;
+  start: Date;
+  end: Date;
+} {
+  if (filter.from && filter.to) {
+    const start = new Date(`${filter.from}T00:00:00.000Z`);
+    const end = new Date(`${filter.to}T00:00:00.000Z`);
+    end.setUTCDate(end.getUTCDate() + 1);
+
+    return {
+      label: `${filter.from} to ${filter.to}`,
+      start,
+      end,
+    };
+  }
+
+  const month = filter.month ?? new Date().toISOString().slice(0, 7);
+  const start = new Date(`${month}-01T00:00:00.000Z`);
+  const end = new Date(start);
+  end.setUTCMonth(end.getUTCMonth() + 1);
+
+  return {
+    label: month,
+    start,
+    end,
+  };
+}
+
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async buildMonthlyTransactionsCsv(month: string, email: string): Promise<string> {
-    const start = new Date(`${month}-01T00:00:00.000Z`);
-    const end = new Date(start);
-    end.setUTCMonth(end.getUTCMonth() + 1);
+  async buildMonthlyTransactionsCsv(filter: { month?: string; from?: string; to?: string }, email: string): Promise<string> {
+    const range = resolveRange(filter);
 
     const transactions = await this.prisma.transaction.findMany({
       where: {
         user: { email },
         deletedAt: null,
-        occurredOn: { gte: start, lt: end },
+        occurredOn: { gte: range.start, lt: range.end },
       },
       include: {
         category: {
@@ -33,7 +60,7 @@ export class ReportsService {
 
     const header = ['month', 'occurredOn', 'type', 'category', 'amount', 'note'];
     const rows = transactions.map((transaction) => [
-      month,
+      range.label,
       transaction.occurredOn.toISOString().slice(0, 10),
       transaction.type,
       transaction.category?.name ?? '',
@@ -46,10 +73,8 @@ export class ReportsService {
       .join('\n');
   }
 
-  async buildMonthlySummaryCsv(month: string, email: string): Promise<string> {
-    const start = new Date(`${month}-01T00:00:00.000Z`);
-    const end = new Date(start);
-    end.setUTCMonth(end.getUTCMonth() + 1);
+  async buildMonthlySummaryCsv(filter: { month?: string; from?: string; to?: string }, email: string): Promise<string> {
+    const range = resolveRange(filter);
 
     const [incomeAggregate, expenseAggregate, goal, budgets, transactions] = await Promise.all([
       this.prisma.transaction.aggregate({
@@ -57,7 +82,7 @@ export class ReportsService {
           user: { email },
           type: transaction_type.income,
           deletedAt: null,
-          occurredOn: { gte: start, lt: end },
+          occurredOn: { gte: range.start, lt: range.end },
         },
         _sum: { amount: true },
       }),
@@ -66,13 +91,13 @@ export class ReportsService {
           user: { email },
           type: transaction_type.expense,
           deletedAt: null,
-          occurredOn: { gte: start, lt: end },
+          occurredOn: { gte: range.start, lt: range.end },
         },
         _sum: { amount: true },
       }),
       this.prisma.monthlyGoal.findFirst({
         where: {
-          month,
+          month: filter.month,
           user: { email },
         },
         select: {
@@ -81,7 +106,7 @@ export class ReportsService {
       }),
       this.prisma.budget.findMany({
         where: {
-          month,
+          month: filter.month,
           user: { email },
           categoryId: { not: null },
         },
@@ -97,7 +122,7 @@ export class ReportsService {
           user: { email },
           type: transaction_type.expense,
           deletedAt: null,
-          occurredOn: { gte: start, lt: end },
+          occurredOn: { gte: range.start, lt: range.end },
           categoryId: { not: null },
         },
         select: {
@@ -126,7 +151,7 @@ export class ReportsService {
 
     const summarySection = [
       ['metric', 'value'],
-      ['month', month],
+      ['period', range.label],
       ['totalIncome', totalIncome.toFixed(2)],
       ['totalExpense', totalExpense.toFixed(2)],
       ['balance', balance.toFixed(2)],

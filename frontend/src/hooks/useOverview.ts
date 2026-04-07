@@ -2,8 +2,12 @@ import { fetchOverview } from '../lib/api';
 import type { Overview } from '../types';
 import { useAsyncData } from './useAsyncData';
 
-export function useOverview(month: string) {
-  const state = useAsyncData<Overview | null>(async () => fetchOverview(month), null, [month]);
+export function useOverview(filter: { month?: string; from?: string; to?: string }) {
+  const state = useAsyncData<Overview | null>(
+    async () => fetchOverview(filter),
+    null,
+    [filter.month, filter.from, filter.to],
+  );
 
   return {
     overview: state.data,

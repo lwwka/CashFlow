@@ -36,6 +36,20 @@ export interface Transaction {
   note?: string;
 }
 
+export interface ImportTransactionRow {
+  occurredOn: string;
+  type: 'income' | 'expense';
+  amount: number;
+  categoryName?: string;
+  note?: string;
+}
+
+export interface ImportTransactionsResult {
+  imported: number;
+  skipped: number;
+  skippedRows: ImportTransactionRow[];
+}
+
 export interface Budget {
   id: string;
   month: string;

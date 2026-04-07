@@ -19,9 +19,19 @@ function normalizeMonth(value: string): string {
   return new Date().toISOString().slice(0, 7);
 }
 
+function normalizeDate(value?: string): string {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  return '';
+}
+
 export function App(): JSX.Element {
   const { isAuthenticated, isBootstrapping } = useAuth();
   const [month, setMonth] = useState(normalizeMonth(import.meta.env.VITE_DEFAULT_MONTH ?? new Date().toISOString().slice(0, 7)));
+  const [fromDate, setFromDate] = useState(normalizeDate(import.meta.env.VITE_DEFAULT_FROM_DATE));
+  const [toDate, setToDate] = useState(normalizeDate(import.meta.env.VITE_DEFAULT_TO_DATE));
 
   if (isBootstrapping) {
     return <div className="flex min-h-screen items-center justify-center text-white">Loading auth... 載入登入狀態中</div>;
@@ -32,7 +42,18 @@ export function App(): JSX.Element {
       <Route element={<AuthPage />} path="/auth" />
       <Route
         element={
-          isAuthenticated ? <AppShell month={month} onMonthChange={setMonth} /> : <Navigate replace to="/auth" />
+          isAuthenticated ? (
+            <AppShell
+              month={month}
+              onMonthChange={setMonth}
+              fromDate={fromDate}
+              toDate={toDate}
+              onFromDateChange={setFromDate}
+              onToDateChange={setToDate}
+            />
+          ) : (
+            <Navigate replace to="/auth" />
+          )
         }
         path="/"
       >

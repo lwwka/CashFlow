@@ -1,4 +1,23 @@
-import type { AuthProfile, AuthResponse, Budget, BudgetsResponse, CategoriesResponse, Category, DownloadReportResult, MonthlyGoal, Overview, Transaction } from '../types';
+import type {
+  AuthProfile,
+  AuthResponse,
+  Budget,
+  BudgetsResponse,
+  CategoriesResponse,
+  Category,
+  DownloadReportResult,
+  ImportTransactionRow,
+  ImportTransactionsResult,
+  MonthlyGoal,
+  Overview,
+  Transaction,
+} from '../types';
+
+interface DateRangeFilter {
+  month?: string;
+  from?: string;
+  to?: string;
+}
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
@@ -86,8 +105,8 @@ export function fetchMe(): Promise<AuthProfile> {
   return requestJson('/auth/me');
 }
 
-export function fetchOverview(month: string): Promise<Overview> {
-  return requestJson(`/overview${buildQuery({ month })}`);
+export function fetchOverview(filter: DateRangeFilter): Promise<Overview> {
+  return requestJson(`/overview${buildQuery({ month: filter.month, from: filter.from, to: filter.to })}`);
 }
 
 export function fetchMonthlyGoal(month: string): Promise<MonthlyGoal | null> {
@@ -101,8 +120,8 @@ export function upsertMonthlyGoal(payload: { month: string; savingsTarget: numbe
   });
 }
 
-export function fetchTransactions(month?: string): Promise<Transaction[]> {
-  return requestJson(`/transactions${buildQuery({ month })}`);
+export function fetchTransactions(filter?: DateRangeFilter): Promise<Transaction[]> {
+  return requestJson(`/transactions${buildQuery({ month: filter?.month, from: filter?.from, to: filter?.to })}`);
 }
 
 export function fetchCategories(): Promise<CategoriesResponse> {
@@ -149,6 +168,13 @@ export function createTransaction(payload: {
   });
 }
 
+export function importTransactions(rows: ImportTransactionRow[]): Promise<ImportTransactionsResult> {
+  return requestJson('/transactions/import', {
+    method: 'POST',
+    body: JSON.stringify({ rows }),
+  });
+}
+
 export function updateTransaction(
   id: string,
   payload: {
@@ -188,10 +214,10 @@ export function deleteBudget(id: string): Promise<{ id: string; deleted: true }>
   });
 }
 
-export function downloadTransactionsReport(month: string): Promise<DownloadReportResult> {
-  return requestBlob(`/reports/transactions.csv${buildQuery({ month })}`);
+export function downloadTransactionsReport(filter: DateRangeFilter): Promise<DownloadReportResult> {
+  return requestBlob(`/reports/transactions.csv${buildQuery({ month: filter.month, from: filter.from, to: filter.to })}`);
 }
 
-export function downloadSummaryReport(month: string): Promise<DownloadReportResult> {
-  return requestBlob(`/reports/summary.csv${buildQuery({ month })}`);
+export function downloadSummaryReport(filter: DateRangeFilter): Promise<DownloadReportResult> {
+  return requestBlob(`/reports/summary.csv${buildQuery({ month: filter.month, from: filter.from, to: filter.to })}`);
 }
