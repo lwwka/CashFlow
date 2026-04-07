@@ -12,6 +12,11 @@ export function AppShell(props: AppShellProps): JSX.Element {
   const navigate = useNavigate();
   const { logout, profile } = useAuth();
   const { locale, setLocale, theme, setTheme, t } = usePreferences();
+  const versionMeta = [
+    `frontend ${__APP_VERSION__}`,
+    `sha ${__APP_GIT_SHA__}`,
+    new Date(__APP_BUILD_DATE__).toLocaleString(),
+  ];
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/transactions', label: t('nav.transactions') },
@@ -78,6 +83,11 @@ export function AppShell(props: AppShellProps): JSX.Element {
                   <p className="field-label">Signed in 已登入</p>
                   <p className="mt-2 text-sm text-white/80">{profile?.email}</p>
                   <p className="mt-2 text-xs leading-6 text-white/55">Authenticated mode is active. API requests now use your JWT token. 已啟用登入模式，API 會以你的 token 身份讀寫資料。</p>
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-[11px] leading-5 text-white/45">
+                    {versionMeta.map((item) => (
+                      <p key={item}>{item}</p>
+                    ))}
+                  </div>
                   <button
                     className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                     onClick={() => {
