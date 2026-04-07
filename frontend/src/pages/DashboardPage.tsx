@@ -38,6 +38,8 @@ export function DashboardPage(): JSX.Element {
   const expenseRatio =
     (overview?.totalIncome ?? 0) > 0 ? (overview?.totalExpense ?? 0) / (overview?.totalIncome ?? 0) : 0;
   const isSpendingHeavy = (overview?.totalIncome ?? 0) > 0 && expenseRatio > 0.8;
+  const spendingRateLabel =
+    (overview?.totalIncome ?? 0) > 0 ? `${(expenseRatio * 100).toFixed(0)}%` : '未開始';
   const budgetMessage =
     expenseItems.length === 0
       ? t('dashboard.budgetSafe')
@@ -73,26 +75,34 @@ export function DashboardPage(): JSX.Element {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <Panel title={t('dashboard.alerts')} eyebrow={month}>
-          <div className="grid gap-3 lg:grid-cols-2">
+        <Panel title="本月提醒" eyebrow={month}>
+          <div className="space-y-3">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">本月支出狀態</p>
-              <p className={`mt-3 text-xl font-semibold leading-tight sm:text-2xl ${isSpendingHeavy ? 'text-coral' : 'text-reef'}`}>
-                {(expenseRatio * 100).toFixed(0)}%
-              </p>
-              <p className="mt-2 text-sm leading-7 text-white/60">
-                {isSpendingHeavy ? '你這個月已經用了大部分收入。' : '目前支出仍在可控範圍。'}
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">
-                {budgetMessage}
-              </p>
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">已用收入</p>
+              <div className="mt-3 flex items-end justify-between gap-4">
+                <p className={`text-3xl font-semibold leading-none sm:text-4xl ${isSpendingHeavy ? 'text-coral' : 'text-reef'}`}>
+                  {spendingRateLabel}
+                </p>
+                <p className="text-right text-sm leading-6 text-white/60">
+                  {(overview?.totalIncome ?? 0) > 0
+                    ? isSpendingHeavy
+                      ? '這個月已接近支出壓力區。'
+                      : '目前仍在可控範圍。'
+                    : '先記一筆收入，數字會更準。'}
+                </p>
+              </div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.nextStep')}</p>
-              <p className="mt-3 text-base font-semibold leading-tight text-white sm:text-lg">{nextStepLabel}</p>
-              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to={nextStepLink}>
-                {transactions.length === 0 ? t('dashboard.openTransactions') : t('dashboard.openGoals')}
-              </Link>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">現在要做什麼</p>
+                  <p className="mt-3 text-base font-semibold leading-tight text-white sm:text-lg">{nextStepLabel}</p>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{budgetMessage}</p>
+                </div>
+                <Link className="inline-flex shrink-0 text-sm font-semibold text-reef" to={nextStepLink}>
+                  {transactions.length === 0 ? t('dashboard.openTransactions') : t('dashboard.openGoals')}
+                </Link>
+              </div>
             </div>
           </div>
         </Panel>
