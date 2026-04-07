@@ -12,10 +12,16 @@ export function AppShell(props: AppShellProps): JSX.Element {
   const navigate = useNavigate();
   const { logout, profile } = useAuth();
   const { locale, setLocale, theme, setTheme, t } = usePreferences();
+  const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
+  const appGitSha = typeof __APP_GIT_SHA__ !== 'undefined' ? __APP_GIT_SHA__ : 'local';
+  const appBuildDate =
+    typeof __APP_BUILD_DATE__ !== 'undefined'
+      ? new Date(__APP_BUILD_DATE__).toLocaleString()
+      : 'local build';
   const versionMeta = [
-    `frontend ${__APP_VERSION__}`,
-    `sha ${__APP_GIT_SHA__}`,
-    new Date(__APP_BUILD_DATE__).toLocaleString(),
+    `frontend ${appVersion}`,
+    `sha ${appGitSha}`,
+    appBuildDate,
   ];
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
