@@ -98,6 +98,22 @@ export function createTransaction(payload: {
   });
 }
 
+export function updateTransaction(
+  id: string,
+  payload: {
+    type?: 'income' | 'expense';
+    amount?: number;
+    occurredOn?: string;
+    categoryId?: string;
+    note?: string;
+  },
+): Promise<Transaction> {
+  return requestJson(`/transactions/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function deleteTransaction(id: string): Promise<{ id: string; deleted: true }> {
   return requestJson(`/transactions/${id}`, {
     method: 'DELETE',

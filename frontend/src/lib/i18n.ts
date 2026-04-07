@@ -42,11 +42,16 @@ export type TranslationKey =
   | 'transactions.categoryHint'
   | 'transactions.amountRequired'
   | 'transactions.createButton'
+  | 'transactions.updateButton'
+  | 'transactions.edit'
+  | 'transactions.cancelEdit'
   | 'transactions.saving'
   | 'transactions.saved'
+  | 'transactions.updated'
   | 'transactions.deleted'
   | 'transactions.list'
   | 'common.loading'
+  | 'common.cancel'
   | 'common.delete'
   | 'categories.create'
   | 'categories.reusable'
@@ -121,11 +126,16 @@ const en: Dict = {
   'transactions.categoryHint': 'Create matching categories first if the selector is empty.',
   'transactions.amountRequired': 'Enter an amount greater than 0 before saving.',
   'transactions.createButton': 'Create Transaction',
+  'transactions.updateButton': 'Update Transaction',
+  'transactions.edit': 'Edit',
+  'transactions.cancelEdit': 'Cancel edit',
   'transactions.saving': 'Saving...',
   'transactions.saved': 'Transaction saved.',
+  'transactions.updated': 'Transaction updated.',
   'transactions.deleted': 'Transaction deleted.',
   'transactions.list': 'Transactions',
   'common.loading': 'Loading...',
+  'common.cancel': 'Cancel',
   'common.delete': 'Delete',
   'categories.create': 'Create Category',
   'categories.reusable': 'Reusable labels',
@@ -198,11 +208,16 @@ const zh: Dict = {
   'transactions.categoryHint': '如果下拉選單沒有選項，請先建立對應類型的分類。',
   'transactions.amountRequired': '請先輸入大於 0 的金額再儲存。',
   'transactions.createButton': '新增交易',
+  'transactions.updateButton': '更新交易',
+  'transactions.edit': '編輯',
+  'transactions.cancelEdit': '取消編輯',
   'transactions.saving': '儲存中...',
   'transactions.saved': '交易已儲存。',
+  'transactions.updated': '交易已更新。',
   'transactions.deleted': '交易已刪除。',
   'transactions.list': '交易列表',
   'common.loading': '載入中...',
+  'common.cancel': '取消',
   'common.delete': '刪除',
   'categories.create': '新增分類',
   'categories.reusable': '可重用標籤',

@@ -6,6 +6,7 @@ import { useCategories } from '../hooks/useCategories';
 import { useTransactionMutations } from '../hooks/useTransactionMutations';
 import { useTransactions } from '../hooks/useTransactions';
 import { usePreferences } from '../providers/PreferencesProvider';
+import type { Transaction } from '../types';
 
 interface ShellContext {
   month: string;
@@ -33,20 +34,61 @@ export function TransactionsPage(): JSX.Element {
     categoryId: '',
     note: '',
   });
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const availableCategories = categories.filter((category) => category.type === form.type);
   const isAmountValid = Number(form.amount) > 0;
   const isFormValid = isAmountValid && Boolean(form.occurredOn);
-  const { status, isSaving, create, remove } = useTransactionMutations({
+  const { status, isSaving, create, update, remove } = useTransactionMutations({
     onAfterCreate: async () => Promise.all([reloadTransactions(), reloadCategories()]).then(() => undefined),
+    onAfterUpdate: async () => Promise.all([reloadTransactions(), reloadCategories()]).then(() => undefined),
     onAfterDelete: async () => reloadTransactions(),
     onErrorMessage: t('status.failedTransaction'),
     onSavedMessage: t('transactions.saved'),
+    onUpdatedMessage: t('transactions.updated'),
     onDeletedMessage: t('transactions.deleted'),
   });
+
+  function resetForm(): void {
+    setEditingTransactionId(null);
+    setForm({
+      type: 'expense',
+      amount: '',
+      occurredOn: `${month}-01`,
+      categoryId: '',
+      note: '',
+    });
+  }
+
+  function startEditing(item: Transaction): void {
+    setEditingTransactionId(item.id);
+    setForm({
+      type: item.type,
+      amount: String(item.amount),
+      occurredOn: item.occurredOn,
+      categoryId: item.categoryId ?? '',
+      note: item.note ?? '',
+    });
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!isFormValid) {
+      return;
+    }
+
+    if (editingTransactionId) {
+      const didUpdate = await update(editingTransactionId, {
+        type: form.type as 'income' | 'expense',
+        amount: Number(form.amount),
+        occurredOn: form.occurredOn,
+        categoryId: form.categoryId || undefined,
+        note: form.note || undefined,
+      });
+
+      if (didUpdate) {
+        resetForm();
+      }
+
       return;
     }
 
@@ -59,7 +101,7 @@ export function TransactionsPage(): JSX.Element {
     });
 
     if (didCreate) {
-      setForm((current) => ({ ...current, amount: '', note: '' }));
+      resetForm();
     }
   }
 
@@ -69,7 +111,7 @@ export function TransactionsPage(): JSX.Element {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <Panel title={t('transactions.create')} eyebrow={t('transactions.writeDb')}>
+      <Panel title={editingTransactionId ? t('transactions.edit') : t('transactions.create')} eyebrow={t('transactions.writeDb')}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="field">
@@ -135,9 +177,20 @@ export function TransactionsPage(): JSX.Element {
           </label>
 
           {!isAmountValid ? <p className="text-sm text-white/55">{t('transactions.amountRequired')}</p> : null}
-          <button className="primary-button w-full" disabled={isSaving || !isFormValid} type="submit">
-            {isSaving ? t('transactions.saving') : t('transactions.createButton')}
-          </button>
+          <div className="space-y-3">
+            <button className="primary-button w-full" disabled={isSaving || !isFormValid} type="submit">
+              {isSaving ? t('transactions.saving') : editingTransactionId ? t('transactions.updateButton') : t('transactions.createButton')}
+            </button>
+            {editingTransactionId ? (
+              <button
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                onClick={resetForm}
+                type="button"
+              >
+                {t('transactions.cancelEdit')}
+              </button>
+            ) : null}
+          </div>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}
           {error ? <p className="text-sm text-coral">{error}</p> : null}
         </form>
@@ -157,6 +210,13 @@ export function TransactionsPage(): JSX.Element {
                 </div>
                 <div className="flex items-center gap-3">
                   <p className={item.type === 'income' ? 'text-reef' : 'text-coral'}>{formatCurrency(item.amount)}</p>
+                  <button
+                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
+                    onClick={() => startEditing(item)}
+                    type="button"
+                  >
+                    {t('transactions.edit')}
+                  </button>
                   <button className="danger-button" onClick={() => void handleDelete(item.id)} type="button">
                     {t('common.delete')}
                   </button>

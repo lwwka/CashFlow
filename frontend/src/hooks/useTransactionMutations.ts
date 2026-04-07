@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
-import { createTransaction, deleteTransaction } from '../lib/api';
+import { createTransaction, deleteTransaction, updateTransaction } from '../lib/api';
 
 interface UseTransactionMutationsOptions {
   onAfterCreate?: () => Promise<void>;
+  onAfterUpdate?: () => Promise<void>;
   onAfterDelete?: () => Promise<void>;
   onErrorMessage: string;
   onSavedMessage: string;
+  onUpdatedMessage: string;
   onDeletedMessage: string;
 }
 
@@ -37,6 +39,32 @@ export function useTransactionMutations(options: UseTransactionMutationsOptions)
     }
   }
 
+  async function update(
+    id: string,
+    input: {
+      type?: 'income' | 'expense';
+      amount?: number;
+      occurredOn?: string;
+      categoryId?: string;
+      note?: string;
+    },
+  ): Promise<boolean> {
+    setIsSaving(true);
+    setStatus(null);
+
+    try {
+      await updateTransaction(id, input);
+      setStatus(options.onUpdatedMessage);
+      await options.onAfterUpdate?.();
+      return true;
+    } catch (nextError) {
+      setStatus(nextError instanceof Error ? nextError.message : options.onErrorMessage);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   async function remove(id: string): Promise<void> {
     try {
       await deleteTransaction(id);
@@ -51,6 +79,7 @@ export function useTransactionMutations(options: UseTransactionMutationsOptions)
     status,
     isSaving,
     create,
+    update,
     remove,
   };
 }
