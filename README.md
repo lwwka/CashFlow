@@ -107,6 +107,17 @@ This flow will:
 3. Re-apply PostgreSQL-specific constraint/index fixes
 4. Run the Prisma seed script
 
+## Reset Railway PostgreSQL From Windows PowerShell
+
+After setting `DATABASE_URL` to your Railway PostgreSQL `DATABASE_PUBLIC_URL` in `backend/.env`, run:
+
+```powershell
+cd backend
+npx prisma db push --force-reset --accept-data-loss --schema prisma/schema.prisma
+npx prisma db execute --schema prisma/schema.prisma --file .\prisma\post-reset.sql
+npx prisma db seed --schema prisma/schema.prisma
+```
+
 ## Initialize Demo Data Only
 
 If the schema is already present and you only want to insert demo data:

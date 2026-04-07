@@ -8,10 +8,16 @@ import type { AuthUser } from './auth.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
+    const jwtSecret = configService.get<string>('JWT_SECRET')?.trim();
+
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is required');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') ?? 'cashflow-dev-secret',
+      secretOrKey: jwtSecret,
     });
   }
 

@@ -7,8 +7,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  const isProduction = nodeEnv === 'production';
   const corsOrigin = process.env.CORS_ORIGIN;
-  const enableSwagger = (process.env.ENABLE_SWAGGER ?? 'true') === 'true';
+  const enableSwagger = (process.env.ENABLE_SWAGGER ?? (isProduction ? 'false' : 'true')) === 'true';
+
+  if (isProduction && !corsOrigin?.trim()) {
+    throw new Error('CORS_ORIGIN is required in production');
+  }
 
   app.enableCors({
     origin: corsOrigin
@@ -16,7 +22,7 @@ async function bootstrap(): Promise<void> {
           .split(',')
           .map((value) => value.trim())
           .filter(Boolean)
-      : true,
+      : false,
     credentials: true,
   });
   app.use(helmet());
