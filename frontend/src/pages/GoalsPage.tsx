@@ -112,7 +112,8 @@ function buildTrendPolyline(points: Array<{ label: string; net: number }>): stri
 
 export function GoalsPage(): JSX.Element {
   const { month, fromDate, toDate } = useOutletContext<ShellContext>();
-  const { t } = usePreferences();
+  const { t, theme } = usePreferences();
+  const isLight = theme === 'light';
   const hasCustomRange = Boolean(fromDate && toDate);
   const filter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
   const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(filter);
@@ -411,17 +412,43 @@ export function GoalsPage(): JSX.Element {
           </div>
         </Panel>
 
-        <details className="rounded-[28px] border border-white/10 bg-[#132736]/80 px-5 py-5">
-          <summary className="cursor-pointer list-none text-base font-semibold text-white">
-            {t('dashboard.cashFlowTrend')}
-            <span className="ml-3 text-sm font-normal text-white/45">Open only when you want a deeper read</span>
+        <details
+          className="glass-panel overflow-hidden"
+          style={
+            isLight
+              ? {
+                  background: 'rgba(255, 252, 245, 0.88)',
+                  borderColor: 'rgba(19, 34, 56, 0.08)',
+                  boxShadow: '0 24px 60px rgba(19, 34, 56, 0.08)',
+                }
+              : undefined
+          }
+        >
+          <summary className="cursor-pointer list-none px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-reef">深入分析</p>
+            <h3 className={`mt-3 text-3xl font-semibold leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {t('dashboard.cashFlowTrend')}
+            </h3>
+            <p className={`mt-3 text-sm leading-6 ${isLight ? 'text-slate-500' : 'text-white/45'}`}>
+              Open only when you want a deeper read
+            </p>
           </summary>
-          <div className="mt-4">
+          <div
+            className="border-t border-white/10 px-5 py-5"
+            style={isLight ? { borderTopColor: 'rgba(19, 34, 56, 0.08)' } : undefined}
+          >
             {trendSeries.length > 0 ? (
               <div className="space-y-5">
-                <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <svg className="h-[140px] w-full" viewBox="0 0 320 120" preserveAspectRatio="none" role="img">
-                    <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+                    <line
+                      x1="0"
+                      y1="60"
+                      x2="320"
+                      y2="60"
+                      stroke={isLight ? 'rgba(100,116,139,0.25)' : 'rgba(255,255,255,0.12)'}
+                      strokeDasharray="4 4"
+                    />
                     <polyline
                       fill="none"
                       stroke="rgb(72 225 207)"
@@ -434,13 +461,13 @@ export function GoalsPage(): JSX.Element {
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.bestDay')}</p>
+                    <p className={`text-xs uppercase tracking-[0.18em] ${isLight ? 'text-slate-500' : 'text-white/45'}`}>{t('dashboard.bestDay')}</p>
                     <p className="mt-3 text-lg text-reef">
                       {bestTrendPoint ? `${bestTrendPoint.label} · ${formatCurrency(bestTrendPoint.net)}` : '-'}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.worstDay')}</p>
+                    <p className={`text-xs uppercase tracking-[0.18em] ${isLight ? 'text-slate-500' : 'text-white/45'}`}>{t('dashboard.worstDay')}</p>
                     <p className="mt-3 text-lg text-coral">
                       {worstTrendPoint ? `${worstTrendPoint.label} · ${formatCurrency(worstTrendPoint.net)}` : '-'}
                     </p>
@@ -448,7 +475,7 @@ export function GoalsPage(): JSX.Element {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-white/55">{t('dashboard.noTrendData')}</p>
+              <p className={`text-sm ${isLight ? 'text-slate-500' : 'text-white/55'}`}>{t('dashboard.noTrendData')}</p>
             )}
           </div>
         </details>

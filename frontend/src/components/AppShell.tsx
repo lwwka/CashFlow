@@ -168,7 +168,7 @@ export function AppShell(props: AppShellProps): JSX.Element {
                 </div>
               ) : null}
               <button
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="mt-4 w-full rounded-2xl border border-slate-300/70 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                 onClick={() => {
                   logout();
                   navigate('/auth');

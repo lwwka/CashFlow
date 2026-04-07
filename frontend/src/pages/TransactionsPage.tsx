@@ -176,7 +176,7 @@ export function TransactionsPage(): JSX.Element {
     hasCustomRange ? { from: fromDate, to: toDate } : { month },
   );
   const { categories, isLoading: isCategoriesLoading, error: categoriesError, reload: reloadCategories } = useCategories();
-  const { t } = usePreferences();
+  const { t, theme } = usePreferences();
   const isLoading = isTransactionsLoading || isCategoriesLoading;
   const error = transactionsError ?? categoriesError;
   const [form, setForm] = useState({
@@ -226,6 +226,13 @@ export function TransactionsPage(): JSX.Element {
     onDeletedMessage: t('transactions.deleted'),
   });
   const reportFilter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
+  const isLight = theme === 'light';
+  const secondaryButtonClass = [
+    'w-full rounded-2xl px-4 py-3 text-sm font-semibold transition',
+    isLight
+      ? 'border border-slate-300/70 bg-white text-slate-900 hover:bg-slate-50'
+      : 'border border-white/10 bg-white/5 text-white hover:bg-white/10',
+  ].join(' ');
 
   function resetForm(): void {
     setEditingTransactionId(null);
@@ -558,13 +565,43 @@ export function TransactionsPage(): JSX.Element {
           </div>
         </Panel>
 
-        <details className="rounded-[28px] border border-white/10 bg-[#132736]/80 px-5 py-5">
-          <summary className="cursor-pointer list-none text-base font-semibold text-white">
-            More tools 更多工具
-            <span className="ml-3 text-sm font-normal text-white/45">Import, export, setup, and advanced entry</span>
+        <details
+          className="glass-panel overflow-hidden"
+          style={
+            isLight
+              ? {
+                  background: 'rgba(255, 252, 245, 0.88)',
+                  borderColor: 'rgba(19, 34, 56, 0.08)',
+                  boxShadow: '0 24px 60px rgba(19, 34, 56, 0.08)',
+                }
+              : undefined
+          }
+        >
+          <summary className="cursor-pointer list-none px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-reef">
+              工具
+            </p>
+            <h3 className={`mt-3 text-3xl font-semibold leading-none ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              More tools 更多工具
+            </h3>
+            <p className={`mt-3 text-sm leading-6 ${isLight ? 'text-slate-500' : 'text-white/45'}`}>
+              Import, export, setup, and advanced entry
+            </p>
           </summary>
-          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+          <div
+            className="border-t border-white/10 px-5 py-5"
+            style={isLight ? { borderTopColor: 'rgba(19, 34, 56, 0.08)' } : undefined}
+          >
+          <details
+            className={[
+              'rounded-2xl px-4 py-4',
+              'border border-white/10 bg-white/5',
+            ].join(' ')}
+          >
+            <summary
+              className="cursor-pointer list-none text-sm font-semibold"
+              style={isLight ? { color: '#132238' } : { color: '#ffffff' }}
+            >
               Advanced transaction form 進階交易表單
             </summary>
             <form className="mt-4 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
@@ -651,22 +688,26 @@ export function TransactionsPage(): JSX.Element {
             </form>
           </details>
 
-          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+          <details
+            className={[
+              'mt-4 rounded-2xl px-4 py-4',
+              'border border-white/10 bg-white/5',
+            ].join(' ')}
+          >
+            <summary
+              className="cursor-pointer list-none text-sm font-semibold"
+              style={isLight ? { color: '#132238' } : { color: '#ffffff' }}
+            >
               {t('transactions.import')}
             </summary>
             <div className="mt-4 space-y-4">
-            <p className="text-sm leading-7 text-white/65">{t('transactions.importDescription')}</p>
-            <p className="text-xs leading-6 text-white/45">{t('transactions.importFormat')}</p>
-            <p className="text-xs leading-6 text-white/45">{t('transactions.importPasteHint')}</p>
-            <button
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              onClick={downloadImportTemplate}
-              type="button"
-            >
+            <p className={`text-sm leading-7 ${isLight ? 'text-slate-600' : 'text-white/65'}`}>{t('transactions.importDescription')}</p>
+            <p className={`text-xs leading-6 ${isLight ? 'text-slate-500' : 'text-white/45'}`}>{t('transactions.importFormat')}</p>
+            <p className={`text-xs leading-6 ${isLight ? 'text-slate-500' : 'text-white/45'}`}>{t('transactions.importPasteHint')}</p>
+            <button className={secondaryButtonClass} onClick={downloadImportTemplate} type="button">
               {t('transactions.downloadTemplate')}
             </button>
-            <p className="text-xs leading-6 text-white/45">{t('transactions.templateHint')}</p>
+            <p className={`text-xs leading-6 ${isLight ? 'text-slate-500' : 'text-white/45'}`}>{t('transactions.templateHint')}</p>
             <label className="field">
               <span className="field-label">{t('transactions.uploadFile')}</span>
               <input
@@ -677,9 +718,14 @@ export function TransactionsPage(): JSX.Element {
               />
             </label>
             {selectedImportFileName ? (
-              <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-white/70">
+              <div
+                className={[
+                  'rounded-2xl px-4 py-4 text-sm',
+                  isLight ? 'border border-slate-200 bg-white text-slate-600' : 'border border-white/10 bg-black/15 text-white/70',
+                ].join(' ')}
+              >
                 <p>
-                  {t('transactions.selectedFile')}: <span className="text-white">{selectedImportFileName}</span>
+                  {t('transactions.selectedFile')}: <span className={isLight ? 'text-slate-900' : 'text-white'}>{selectedImportFileName}</span>
                 </p>
               </div>
             ) : null}
@@ -695,12 +741,17 @@ export function TransactionsPage(): JSX.Element {
                 placeholder={t('transactions.importPlaceholder')}
               />
             </label>
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4 text-sm text-white/70">
+            <div
+              className={[
+                'rounded-2xl px-4 py-4 text-sm',
+                isLight ? 'border border-slate-200 bg-white text-slate-600' : 'border border-white/10 bg-black/15 text-white/70',
+              ].join(' ')}
+            >
               <p>
                 {t('transactions.importPreview')}: {parsedImportRows.length} {t('transactions.importRows')}
               </p>
               {parsedImportRows.slice(0, 3).map((row, index) => (
-                <p key={`${row.occurredOn}-${row.amount}-${index}`} className="mt-2 text-xs leading-6 text-white/50">
+                <p key={`${row.occurredOn}-${row.amount}-${index}`} className={`mt-2 text-xs leading-6 ${isLight ? 'text-slate-500' : 'text-white/50'}`}>
                   {row.occurredOn} · {row.type} · {formatCurrency(row.amount)} · {row.categoryName || t('transactions.uncategorized')}
                 </p>
               ))}
@@ -731,15 +782,10 @@ export function TransactionsPage(): JSX.Element {
             >
               {isImporting ? t('transactions.importing') : t('transactions.importButton')}
             </button>
-            <button
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              disabled={!importCsv && !selectedImportFileName}
-              onClick={clearImportData}
-              type="button"
-            >
+            <button className={secondaryButtonClass} disabled={!importCsv && !selectedImportFileName} onClick={clearImportData} type="button">
               {t('transactions.clearImport')}
             </button>
-            {importStatus ? <p className="text-sm text-white/70">{importStatus}</p> : null}
+            {importStatus ? <p className={`text-sm ${isLight ? 'text-slate-600' : 'text-white/70'}`}>{importStatus}</p> : null}
             {skippedImportRows.length > 0 ? (
               <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-4 text-sm text-amber-100">
                 <p>
@@ -762,13 +808,21 @@ export function TransactionsPage(): JSX.Element {
             </div>
           </details>
 
-          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+          <details
+            className={[
+              'mt-4 rounded-2xl px-4 py-4',
+              'border border-white/10 bg-white/5',
+            ].join(' ')}
+          >
+            <summary
+              className="cursor-pointer list-none text-sm font-semibold"
+              style={isLight ? { color: '#132238' } : { color: '#ffffff' }}
+            >
               {t('reports.title')}
             </summary>
             <div className="mt-4 space-y-4">
-            <p className="text-sm leading-7 text-white/65">
-              Download your data from the same place where you add and import transactions, so exporting stays simple.
+            <p className={`text-sm leading-7 ${isLight ? 'text-slate-600' : 'text-white/65'}`}>
+              從這裡下載交易或摘要 CSV，需要整理到 Excel 時會最方便。
             </p>
             <button
               className="primary-button w-full"
@@ -778,39 +832,43 @@ export function TransactionsPage(): JSX.Element {
             >
               {activeReport === 'transactions' ? 'Downloading...' : `${t('reports.transactions')} CSV`}
             </button>
-            <button
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              disabled={activeReport !== null}
-              onClick={() => void handleDownloadReport('summary')}
-              type="button"
-            >
+            <button className={secondaryButtonClass} disabled={activeReport !== null} onClick={() => void handleDownloadReport('summary')} type="button">
               {activeReport === 'summary' ? 'Downloading...' : `${t('reports.summary')} CSV`}
             </button>
-            {reportStatus ? <p className="text-sm text-white/70">{reportStatus}</p> : null}
+            {reportStatus ? <p className={`text-sm ${isLight ? 'text-slate-600' : 'text-white/70'}`}>{reportStatus}</p> : null}
             </div>
           </details>
 
-          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+          <details
+            className={[
+              'mt-4 rounded-2xl px-4 py-4',
+              'border border-white/10 bg-white/5',
+            ].join(' ')}
+          >
+            <summary
+              className="cursor-pointer list-none text-sm font-semibold"
+              style={isLight ? { color: '#132238' } : { color: '#ffffff' }}
+            >
               Setup tools 設定工具
             </summary>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">{t('nav.categories')}</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">Create a few clean labels first if your transactions need clearer grouping.</p>
+            <div className={`rounded-2xl px-4 py-4 ${isLight ? 'border border-slate-200 bg-white' : 'border border-white/10 bg-white/5'}`}>
+              <p className={`text-sm font-medium ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('nav.categories')}</p>
+              <p className={`mt-2 text-sm leading-7 ${isLight ? 'text-slate-600' : 'text-white/60'}`}>如果你想把交易整理得更清楚，可以先加幾個常用分類。</p>
               <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/categories">
-                Open categories
+                前往分類
               </Link>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">{t('nav.budgets')}</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">Only use budgets if you want stricter monthly control. It is not required to start using the app.</p>
+            <div className={`rounded-2xl px-4 py-4 ${isLight ? 'border border-slate-200 bg-white' : 'border border-white/10 bg-white/5'}`}>
+              <p className={`text-sm font-medium ${isLight ? 'text-slate-900' : 'text-white'}`}>{t('nav.budgets')}</p>
+              <p className={`mt-2 text-sm leading-7 ${isLight ? 'text-slate-600' : 'text-white/60'}`}>如果你想看每個月有沒有超支，再用預算功能就可以。</p>
               <Link className="mt-3 inline-flex text-sm font-semibold text-sand" to="/budgets">
-                Open budgets
+                前往預算
               </Link>
             </div>
             </div>
           </details>
+          </div>
         </details>
       </div>
 
