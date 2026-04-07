@@ -7,8 +7,6 @@ import { BudgetsPage } from './pages/BudgetsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GoalsPage } from './pages/GoalsPage';
-import { InsightsPage } from './pages/InsightsPage';
-import { ReportsPage } from './pages/ReportsPage';
 import { AuthPage } from './pages/AuthPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 
@@ -60,8 +58,8 @@ export function App(): JSX.Element {
       >
         <Route element={<DashboardPage />} index />
         <Route element={<GoalsPage />} path="goals" />
-        <Route element={<InsightsPage />} path="insights" />
-        <Route element={<ReportsPage />} path="reports" />
+        <Route element={<Navigate replace to="/goals" />} path="insights" />
+        <Route element={<Navigate replace to="/transactions" />} path="reports" />
         <Route element={<TransactionsPage />} path="transactions" />
         <Route element={<CategoriesPage />} path="categories" />
         <Route element={<BudgetsPage />} path="budgets" />

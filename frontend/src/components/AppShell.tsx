@@ -26,14 +26,10 @@ export function AppShell(props: AppShellProps): JSX.Element {
     : 'local build';
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
-    { to: '/goals', label: t('nav.goals') },
-    { to: '/insights', label: t('nav.insights') },
-    { to: '/reports', label: t('nav.reports') },
     { to: '/transactions', label: t('nav.transactions') },
-    { to: '/categories', label: t('nav.categories') },
-    { to: '/budgets', label: t('nav.budgets') },
+    { to: '/goals', label: t('nav.goals') },
   ];
-  const showFilters = location.pathname !== '/';
+  const showFilters = ['/transactions', '/goals', '/categories', '/budgets'].includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-hero-glow px-4 py-6 text-white sm:px-6 lg:px-10">
@@ -42,6 +38,7 @@ export function AppShell(props: AppShellProps): JSX.Element {
           <div className="border-b border-white/10 px-5 py-5">
             <p className="text-[11px] uppercase tracking-[0.35em] text-reef">CashFlow</p>
             <h1 className="mt-3 text-3xl leading-none">{t('shell.title')}</h1>
+            <p className="mt-3 text-sm leading-6 text-white/55">Track spending, stay on target, and keep the daily flow simple.</p>
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Signed in as 已登入身份</p>
               <p className="mt-2 text-sm text-sand">{profile?.email ?? '-'}</p>
@@ -124,24 +121,23 @@ export function AppShell(props: AppShellProps): JSX.Element {
               </div>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <label className="field">
-                <span className="field-label">{t('locale.switch')}</span>
-                <select className="text-input" onChange={(event) => setLocale(event.target.value as 'en' | 'zh')} value={locale}>
-                  <option value="zh">中文</option>
-                  <option value="en">English</option>
-                </select>
-              </label>
-              <label className="field">
-                <span className="field-label">{t('theme.switch')}</span>
-                <select className="text-input" onChange={(event) => setTheme(event.target.value as 'dark' | 'light')} value={theme}>
-                  <option value="dark">{t('theme.dark')}</option>
-                  <option value="light">{t('theme.light')}</option>
-                </select>
-              </label>
-            </div>
-
             <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <label className="field">
+                  <span className="field-label">{t('locale.switch')}</span>
+                  <select className="text-input" onChange={(event) => setLocale(event.target.value as 'en' | 'zh')} value={locale}>
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field-label">{t('theme.switch')}</span>
+                  <select className="text-input" onChange={(event) => setTheme(event.target.value as 'dark' | 'light')} value={theme}>
+                    <option value="dark">{t('theme.dark')}</option>
+                    <option value="light">{t('theme.light')}</option>
+                  </select>
+                </label>
+              </div>
               <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
                 <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Build</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-[11px]">

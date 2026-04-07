@@ -1,8 +1,8 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
-import { importTransactions } from '../lib/api';
+import { downloadSummaryReport, downloadTransactionsReport, importTransactions } from '../lib/api';
 import { useCategories } from '../hooks/useCategories';
 import { useTransactionMutations } from '../hooks/useTransactionMutations';
 import { useTransactions } from '../hooks/useTransactions';
@@ -20,6 +20,8 @@ interface ImportRowIssue {
   reason: 'date' | 'type' | 'amount';
   raw: string;
 }
+
+type ReportKind = 'transactions' | 'summary';
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -190,6 +192,8 @@ export function TransactionsPage(): JSX.Element {
   const [isImporting, setIsImporting] = useState(false);
   const [selectedImportFileName, setSelectedImportFileName] = useState('');
   const [skippedImportRows, setSkippedImportRows] = useState<ImportTransactionRow[]>([]);
+  const [reportStatus, setReportStatus] = useState('');
+  const [activeReport, setActiveReport] = useState<ReportKind | null>(null);
   const availableCategories = categories.filter((category) => category.type === form.type);
   const isAmountValid = Number(form.amount) > 0;
   const isFormValid = isAmountValid && Boolean(form.occurredOn);
@@ -205,6 +209,7 @@ export function TransactionsPage(): JSX.Element {
     onUpdatedMessage: t('transactions.updated'),
     onDeletedMessage: t('transactions.deleted'),
   });
+  const reportFilter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
 
   function resetForm(): void {
     setEditingTransactionId(null);
@@ -329,9 +334,57 @@ export function TransactionsPage(): JSX.Element {
     return t('transactions.importIssueAmount');
   }
 
+  async function handleDownloadReport(kind: ReportKind): Promise<void> {
+    setActiveReport(kind);
+    setReportStatus('');
+
+    try {
+      const result =
+        kind === 'transactions'
+          ? await downloadTransactionsReport(reportFilter)
+          : await downloadSummaryReport(reportFilter);
+      const url = URL.createObjectURL(result.blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setReportStatus(t('reports.ready'));
+    } catch (downloadError) {
+      setReportStatus(downloadError instanceof Error ? downloadError.message : t('reports.failed'));
+    } finally {
+      setActiveReport(null);
+    }
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <div className="space-y-6">
+        <Panel title="Daily money actions 每日操作" eyebrow={hasCustomRange ? `${fromDate} → ${toDate}` : month}>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">Add today&apos;s transaction</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">Use the form below for normal day-to-day logging. It is the fastest path if you only need to add one or two records.</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">Need setup first?</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">If your category selector feels empty, open the helper pages first and come back here.</p>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link className="inline-flex text-sm font-semibold text-reef" to="/categories">
+                  {t('nav.categories')}
+                </Link>
+                <Link className="inline-flex text-sm font-semibold text-sand" to="/budgets">
+                  {t('nav.budgets')}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Panel>
+
         <Panel title={editingTransactionId ? t('transactions.edit') : t('transactions.create')} eyebrow={t('transactions.writeDb')}>
           <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -417,7 +470,7 @@ export function TransactionsPage(): JSX.Element {
           </form>
         </Panel>
 
-        <Panel title={t('transactions.import')} eyebrow="CSV / Excel">
+        <Panel title={t('transactions.import')} eyebrow="Batch import 批量匯入">
           <div className="space-y-4">
             <p className="text-sm leading-7 text-white/65">{t('transactions.importDescription')}</p>
             <p className="text-xs leading-6 text-white/45">{t('transactions.importFormat')}</p>
@@ -522,6 +575,31 @@ export function TransactionsPage(): JSX.Element {
                 ) : null}
               </div>
             ) : null}
+          </div>
+        </Panel>
+
+        <Panel title={t('reports.title')} eyebrow="Take data out 匯出資料">
+          <div className="space-y-4">
+            <p className="text-sm leading-7 text-white/65">
+              Download your data from the same place where you add and import transactions, so exporting stays simple.
+            </p>
+            <button
+              className="primary-button w-full"
+              disabled={activeReport !== null}
+              onClick={() => void handleDownloadReport('transactions')}
+              type="button"
+            >
+              {activeReport === 'transactions' ? 'Downloading...' : `${t('reports.transactions')} CSV`}
+            </button>
+            <button
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              disabled={activeReport !== null}
+              onClick={() => void handleDownloadReport('summary')}
+              type="button"
+            >
+              {activeReport === 'summary' ? 'Downloading...' : `${t('reports.summary')} CSV`}
+            </button>
+            {reportStatus ? <p className="text-sm text-white/70">{reportStatus}</p> : null}
           </div>
         </Panel>
       </div>

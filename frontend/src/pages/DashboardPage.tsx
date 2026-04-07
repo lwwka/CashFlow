@@ -120,18 +120,15 @@ export function DashboardPage(): JSX.Element {
                 {t('dashboard.openTransactions')}
               </Link>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">{t('dashboard.stepGoals')}</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepGoalsHint')}</p>
-              <div className="mt-3 flex flex-wrap gap-4">
-                <Link className="inline-flex text-sm font-semibold text-reef" to="/goals">
-                  {t('dashboard.openGoals')}
-                </Link>
-                <Link className="inline-flex text-sm font-semibold text-sand" to="/insights">
-                  {t('dashboard.openInsights')}
-                </Link>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                <p className="text-sm font-medium text-white">{t('dashboard.stepGoals')}</p>
+                <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepGoalsHint')}</p>
+                <div className="mt-3 flex flex-wrap gap-4">
+                  <Link className="inline-flex text-sm font-semibold text-reef" to="/goals">
+                    {t('dashboard.openGoals')}
+                  </Link>
+                </div>
               </div>
-            </div>
           </div>
         </Panel>
 
