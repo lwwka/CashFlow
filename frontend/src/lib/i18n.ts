@@ -18,6 +18,15 @@ export type TranslationKey =
   | 'dashboard.status'
   | 'dashboard.status.loading'
   | 'dashboard.status.ready'
+  | 'dashboard.spendingHotspots'
+  | 'dashboard.topCategories'
+  | 'dashboard.noExpenseData'
+  | 'dashboard.budgetPulse'
+  | 'dashboard.budgetVsActual'
+  | 'dashboard.noBudgetData'
+  | 'dashboard.actualSpend'
+  | 'dashboard.remaining'
+  | 'dashboard.overBudget'
   | 'metric.income'
   | 'metric.expense'
   | 'metric.balance'
@@ -111,6 +120,15 @@ const en: Dict = {
   'dashboard.status': 'Status',
   'dashboard.status.loading': 'Syncing with API...',
   'dashboard.status.ready': 'Live data loaded',
+  'dashboard.spendingHotspots': 'Spending hotspots',
+  'dashboard.topCategories': 'Top expense categories',
+  'dashboard.noExpenseData': 'No expense transactions for this month yet.',
+  'dashboard.budgetPulse': 'Budget pulse',
+  'dashboard.budgetVsActual': 'Budget vs actual',
+  'dashboard.noBudgetData': 'No category budgets to compare yet.',
+  'dashboard.actualSpend': 'Actual spend',
+  'dashboard.remaining': 'Remaining',
+  'dashboard.overBudget': 'Over budget',
   'metric.income': 'Income',
   'metric.expense': 'Expense',
   'metric.balance': 'Balance',
@@ -202,6 +220,15 @@ const zh: Dict = {
   'dashboard.status': '狀態',
   'dashboard.status.loading': '正在同步資料...',
   'dashboard.status.ready': '資料已載入',
+  'dashboard.spendingHotspots': '支出熱點',
+  'dashboard.topCategories': '主要支出分類',
+  'dashboard.noExpenseData': '本月尚未有支出交易。',
+  'dashboard.budgetPulse': '預算脈搏',
+  'dashboard.budgetVsActual': '預算與實際',
+  'dashboard.noBudgetData': '尚未有可比較的分類預算。',
+  'dashboard.actualSpend': '實際支出',
+  'dashboard.remaining': '剩餘',
+  'dashboard.overBudget': '已超預算',
   'metric.income': '收入',
   'metric.expense': '支出',
   'metric.balance': '結餘',
