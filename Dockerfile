@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS build
+FROM node:20-bullseye-slim AS build
 
 WORKDIR /app/backend
 
@@ -11,7 +11,7 @@ COPY backend ./
 RUN npm run prisma:generate:deploy
 RUN npm run build
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:20-bullseye-slim AS runtime
 
 WORKDIR /app/backend
 ENV NODE_ENV=production
