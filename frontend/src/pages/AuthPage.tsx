@@ -8,8 +8,8 @@ export function AuthPage(): JSX.Element {
   const { isAuthenticated, loginWithPassword, registerWithPassword } = useAuth();
   const { t } = usePreferences();
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('demo-auth@cashflow.local');
-  const [password, setPassword] = useState('StrongPassword123');
+  const [email, setEmail] = useState('demo@cashflow.local');
+  const [password, setPassword] = useState('demo-password-1234');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,6 +45,9 @@ export function AuthPage(): JSX.Element {
             ? 'Sign in to use authenticated API flows.'
             : 'Create an account to start using authenticated API flows.'}
         </p>
+        {mode === 'login' ? (
+          <p className="mt-2 text-sm text-reef/90">Demo account prefilled for quick testing.</p>
+        ) : null}
 
         <form className="mt-8 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <label className="field">
