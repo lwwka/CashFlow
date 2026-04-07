@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
-import { fetchMe, login, register } from '../lib/api';
+import { ApiError, fetchMe, login, register } from '../lib/api';
 import type { AuthProfile } from '../types';
 
 interface AuthContextValue {
@@ -30,10 +30,12 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
       try {
         const me = await fetchMe();
         setProfile(me);
-      } catch {
-        localStorage.removeItem('cashflow-access-token');
-        setAccessToken(null);
-        setProfile(null);
+      } catch (error) {
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+          localStorage.removeItem('cashflow-access-token');
+          setAccessToken(null);
+          setProfile(null);
+        }
       } finally {
         setIsBootstrapping(false);
       }

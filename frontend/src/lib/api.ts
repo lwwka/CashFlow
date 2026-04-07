@@ -2,6 +2,16 @@ import type { AuthProfile, AuthResponse, Budget, BudgetsResponse, CategoriesResp
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 function buildQuery(params: Record<string, string | undefined>): string {
   const searchParams = new URLSearchParams();
 
@@ -28,7 +38,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed with status ${response.status}`);
+    throw new ApiError(text || `Request failed with status ${response.status}`, response.status);
   }
 
   return (await response.json()) as T;
