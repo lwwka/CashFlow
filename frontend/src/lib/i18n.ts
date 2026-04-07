@@ -60,7 +60,11 @@ export type TranslationKey =
   | 'categories.helper'
   | 'categories.type'
   | 'categories.save'
+  | 'categories.update'
+  | 'categories.edit'
+  | 'categories.cancelEdit'
   | 'categories.saved'
+  | 'categories.updated'
   | 'categories.catalog'
   | 'categories.currentUser'
   | 'categories.empty'
@@ -144,7 +148,11 @@ const en: Dict = {
   'categories.helper': 'Add income and expense labels first so transaction and budget forms stay clean.',
   'categories.type': 'Type',
   'categories.save': 'Save Category',
+  'categories.update': 'Update Category',
+  'categories.edit': 'Edit',
+  'categories.cancelEdit': 'Cancel edit',
   'categories.saved': 'Category saved.',
+  'categories.updated': 'Category updated.',
   'categories.catalog': 'Category Catalog',
   'categories.currentUser': 'Current user',
   'categories.empty': 'No categories yet.',
@@ -226,7 +234,11 @@ const zh: Dict = {
   'categories.helper': '先建立收入與支出分類，後面的交易和預算表單會更順手。',
   'categories.type': '類型',
   'categories.save': '儲存分類',
+  'categories.update': '更新分類',
+  'categories.edit': '編輯',
+  'categories.cancelEdit': '取消編輯',
   'categories.saved': '分類已儲存。',
+  'categories.updated': '分類已更新。',
   'categories.catalog': '分類清單',
   'categories.currentUser': '目前使用者',
   'categories.empty': '尚未有分類。',

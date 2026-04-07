@@ -1,11 +1,13 @@
 import { useState } from 'react';
 
-import { createCategory } from '../lib/api';
+import { createCategory, updateCategory } from '../lib/api';
 
 interface UseCategoryMutationsOptions {
   onAfterCreate?: () => Promise<void>;
+  onAfterUpdate?: () => Promise<void>;
   onErrorMessage: string;
   onSavedMessage: string;
+  onUpdatedMessage: string;
 }
 
 export function useCategoryMutations(options: UseCategoryMutationsOptions) {
@@ -29,9 +31,27 @@ export function useCategoryMutations(options: UseCategoryMutationsOptions) {
     }
   }
 
+  async function update(id: string, input: { name?: string; type?: 'income' | 'expense' }): Promise<boolean> {
+    setIsSaving(true);
+    setStatus(null);
+
+    try {
+      await updateCategory(id, input);
+      setStatus(options.onUpdatedMessage);
+      await options.onAfterUpdate?.();
+      return true;
+    } catch (nextError) {
+      setStatus(nextError instanceof Error ? nextError.message : options.onErrorMessage);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return {
     status,
     isSaving,
     create,
+    update,
   };
 }

@@ -85,6 +85,16 @@ export function createCategory(payload: { name: string; type: 'income' | 'expens
   });
 }
 
+export function updateCategory(
+  id: string,
+  payload: { name?: string; type?: 'income' | 'expense' },
+): Promise<Category> {
+  return requestJson(`/categories/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function createTransaction(payload: {
   type: 'income' | 'expense';
   amount: number;
