@@ -16,9 +16,7 @@ export class CategoriesService {
     private readonly userScope: UserScopeService,
   ) {}
 
-  async list(userEmail?: string): Promise<{ items: CategoryRecord[] }> {
-    const email = this.userScope.requireUserEmail(userEmail);
-
+  async list(email: string): Promise<{ items: CategoryRecord[] }> {
     const categories = await this.prisma.category.findMany({
       where: {
         user: { email },
@@ -40,9 +38,8 @@ export class CategoriesService {
     };
   }
 
-  async create(input: { userEmail?: string; name: string; type: 'income' | 'expense' }): Promise<CategoryRecord> {
-    const email = this.userScope.requireUserEmail(input.userEmail);
-    const userId = await this.userScope.getUserIdOrThrow(email);
+  async create(input: { email: string; name: string; type: 'income' | 'expense' }): Promise<CategoryRecord> {
+    const userId = await this.userScope.getUserIdOrThrow(input.email);
 
     const category = await this.prisma.category.upsert({
       where: {
@@ -68,13 +65,11 @@ export class CategoriesService {
     return category;
   }
 
-  async update(id: string, input: { userEmail?: string; name?: string; type?: 'income' | 'expense' }): Promise<CategoryRecord> {
-    const email = this.userScope.requireUserEmail(input.userEmail);
-
+  async update(id: string, input: { email: string; name?: string; type?: 'income' | 'expense' }): Promise<CategoryRecord> {
     const existing = await this.prisma.category.findFirst({
       where: {
         id,
-        user: { email },
+        user: { email: input.email },
       },
       select: { id: true },
     });
@@ -99,9 +94,7 @@ export class CategoriesService {
     return category;
   }
 
-  async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
-    const email = this.userScope.requireUserEmail(userEmail);
-
+  async remove(id: string, email: string): Promise<{ id: string; deleted: true }> {
     const existing = await this.prisma.category.findFirst({
       where: {
         id,

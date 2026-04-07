@@ -25,7 +25,9 @@ export function BudgetsPage(): JSX.Element {
   const { categories, error: categoriesError, reload: reloadCategories } = useCategories();
   const { t } = usePreferences();
   const error = budgetsError ?? categoriesError;
-  const [form, setForm] = useState({ amount: '0', categoryId: '' });
+  const expenseCategories = categories.filter((category) => category.type === 'expense');
+  const [form, setForm] = useState({ amount: '', categoryId: '' });
+  const isAmountValid = Number(form.amount) >= 0 && form.amount !== '';
   const { status, isSaving, upsert } = useBudgetMutations({
     onAfterUpsert: async () => Promise.all([reloadBudgets(), reloadCategories()]).then(() => undefined),
     onErrorMessage: t('status.failedBudget'),
@@ -34,6 +36,10 @@ export function BudgetsPage(): JSX.Element {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (!isAmountValid) {
+      return;
+    }
+
     await upsert({
       month,
       amount: Number(form.amount),
@@ -45,6 +51,7 @@ export function BudgetsPage(): JSX.Element {
     <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
       <Panel title={t('budgets.writer')} eyebrow={month}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <p className="text-sm leading-6 text-white/60">{t('budgets.helper')}</p>
           <label className="field">
             <span className="field-label">{t('budgets.categoryScope')}</span>
             <select
@@ -53,15 +60,14 @@ export function BudgetsPage(): JSX.Element {
               onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
             >
               <option value="">{t('budgets.wholeMonth')}</option>
-              {categories
-                .filter((category) => category.type === 'expense')
-                .map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
+              {expenseCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </label>
+          {expenseCategories.length === 0 ? <p className="text-xs text-white/50">{t('transactions.categoryHint')}</p> : null}
           <label className="field">
             <span className="field-label">{t('budgets.amount')}</span>
             <input
@@ -73,7 +79,8 @@ export function BudgetsPage(): JSX.Element {
               onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
             />
           </label>
-          <button className="primary-button w-full" disabled={isSaving} type="submit">
+          {!isAmountValid ? <p className="text-sm text-white/55">{t('budgets.amountRequired')}</p> : null}
+          <button className="primary-button w-full" disabled={isSaving || !isAmountValid} type="submit">
             {t('budgets.save')}
           </button>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}

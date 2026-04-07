@@ -39,6 +39,8 @@ export type TranslationKey =
   | 'transactions.category'
   | 'transactions.note'
   | 'transactions.note.placeholder'
+  | 'transactions.categoryHint'
+  | 'transactions.amountRequired'
   | 'transactions.createButton'
   | 'transactions.saving'
   | 'transactions.saved'
@@ -50,6 +52,7 @@ export type TranslationKey =
   | 'categories.reusable'
   | 'categories.name'
   | 'categories.name.placeholder'
+  | 'categories.helper'
   | 'categories.type'
   | 'categories.save'
   | 'categories.saved'
@@ -59,6 +62,8 @@ export type TranslationKey =
   | 'budgets.writer'
   | 'budgets.categoryScope'
   | 'budgets.amount'
+  | 'budgets.helper'
+  | 'budgets.amountRequired'
   | 'budgets.save'
   | 'budgets.saved'
   | 'budgets.stored'
@@ -113,6 +118,8 @@ const en: Dict = {
   'transactions.category': 'Category',
   'transactions.note': 'Note',
   'transactions.note.placeholder': 'Lunch, salary, train...',
+  'transactions.categoryHint': 'Create matching categories first if the selector is empty.',
+  'transactions.amountRequired': 'Enter an amount greater than 0 before saving.',
   'transactions.createButton': 'Create Transaction',
   'transactions.saving': 'Saving...',
   'transactions.saved': 'Transaction saved.',
@@ -124,6 +131,7 @@ const en: Dict = {
   'categories.reusable': 'Reusable labels',
   'categories.name': 'Category name',
   'categories.name.placeholder': 'Food, Salary, Rent...',
+  'categories.helper': 'Add income and expense labels first so transaction and budget forms stay clean.',
   'categories.type': 'Type',
   'categories.save': 'Save Category',
   'categories.saved': 'Category saved.',
@@ -133,6 +141,8 @@ const en: Dict = {
   'budgets.writer': 'Budget Writer',
   'budgets.categoryScope': 'Category scope',
   'budgets.amount': 'Amount',
+  'budgets.helper': 'You can save a whole-month cap or assign a budget to one expense category.',
+  'budgets.amountRequired': 'Enter a budget amount of 0 or more.',
   'budgets.save': 'Save Budget',
   'budgets.saved': 'Budget saved.',
   'budgets.stored': 'Stored in PostgreSQL',
@@ -185,6 +195,8 @@ const zh: Dict = {
   'transactions.category': '分類',
   'transactions.note': '備註',
   'transactions.note.placeholder': '午餐、薪水、交通...',
+  'transactions.categoryHint': '如果下拉選單沒有選項，請先建立對應類型的分類。',
+  'transactions.amountRequired': '請先輸入大於 0 的金額再儲存。',
   'transactions.createButton': '新增交易',
   'transactions.saving': '儲存中...',
   'transactions.saved': '交易已儲存。',
@@ -196,6 +208,7 @@ const zh: Dict = {
   'categories.reusable': '可重用標籤',
   'categories.name': '分類名稱',
   'categories.name.placeholder': '飲食、薪水、租金...',
+  'categories.helper': '先建立收入與支出分類，後面的交易和預算表單會更順手。',
   'categories.type': '類型',
   'categories.save': '儲存分類',
   'categories.saved': '分類已儲存。',
@@ -205,6 +218,8 @@ const zh: Dict = {
   'budgets.writer': '預算設定',
   'budgets.categoryScope': '分類範圍',
   'budgets.amount': '金額',
+  'budgets.helper': '你可以設定整月總預算，或只為單一支出分類設定上限。',
+  'budgets.amountRequired': '請輸入大於或等於 0 的預算金額。',
   'budgets.save': '儲存預算',
   'budgets.saved': '預算已儲存。',
   'budgets.stored': '已寫入資料庫',

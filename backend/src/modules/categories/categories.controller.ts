@@ -42,7 +42,7 @@ export class CategoriesController {
   create(@Body() body: CategoryDto, @CurrentUser() user: AuthUser): Promise<unknown> {
     return this.categoriesService.create({
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 
@@ -50,7 +50,7 @@ export class CategoriesController {
   update(@Param('id') id: string, @Body() body: Partial<CategoryDto>, @CurrentUser() user: AuthUser): Promise<unknown> {
     return this.categoriesService.update(id, {
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 

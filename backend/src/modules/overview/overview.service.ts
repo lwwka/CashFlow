@@ -11,13 +11,12 @@ export class OverviewService {
     private readonly userScope: UserScopeService,
   ) {}
 
-  async getMonthlyOverview(month: string, userEmail?: string): Promise<{
+  async getMonthlyOverview(month: string, email: string): Promise<{
     month: string;
     totalIncome: number;
     totalExpense: number;
     balance: number;
   }> {
-    const email = this.userScope.requireUserEmail(userEmail);
     const start = new Date(`${month}-01T00:00:00.000Z`);
     const end = new Date(start);
     end.setUTCMonth(end.getUTCMonth() + 1);

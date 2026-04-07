@@ -52,23 +52,23 @@ export function fetchMe(): Promise<AuthProfile> {
   return requestJson('/auth/me');
 }
 
-export function fetchOverview(month: string, userEmail?: string): Promise<Overview> {
-  return requestJson(`/overview${buildQuery({ userEmail, month })}`);
+export function fetchOverview(month: string): Promise<Overview> {
+  return requestJson(`/overview${buildQuery({ month })}`);
 }
 
-export function fetchTransactions(month?: string, userEmail?: string): Promise<Transaction[]> {
-  return requestJson(`/transactions${buildQuery({ userEmail, month })}`);
+export function fetchTransactions(month?: string): Promise<Transaction[]> {
+  return requestJson(`/transactions${buildQuery({ month })}`);
 }
 
-export function fetchCategories(userEmail?: string): Promise<CategoriesResponse> {
-  return requestJson(`/categories${buildQuery({ userEmail })}`);
+export function fetchCategories(): Promise<CategoriesResponse> {
+  return requestJson('/categories');
 }
 
-export function fetchBudgets(month: string, userEmail?: string): Promise<BudgetsResponse> {
-  return requestJson(`/budgets${buildQuery({ userEmail, month })}`);
+export function fetchBudgets(month: string): Promise<BudgetsResponse> {
+  return requestJson(`/budgets${buildQuery({ month })}`);
 }
 
-export function createCategory(payload: { userEmail?: string; name: string; type: 'income' | 'expense' }): Promise<Category> {
+export function createCategory(payload: { name: string; type: 'income' | 'expense' }): Promise<Category> {
   return requestJson('/categories', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -76,7 +76,6 @@ export function createCategory(payload: { userEmail?: string; name: string; type
 }
 
 export function createTransaction(payload: {
-  userEmail?: string;
   type: 'income' | 'expense';
   amount: number;
   occurredOn: string;
@@ -89,14 +88,13 @@ export function createTransaction(payload: {
   });
 }
 
-export function deleteTransaction(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
-  return requestJson(`/transactions/${id}${buildQuery({ userEmail })}`, {
+export function deleteTransaction(id: string): Promise<{ id: string; deleted: true }> {
+  return requestJson(`/transactions/${id}`, {
     method: 'DELETE',
   });
 }
 
 export function upsertBudget(payload: {
-  userEmail?: string;
   month: string;
   amount: number;
   categoryId?: string;

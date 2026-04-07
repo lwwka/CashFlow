@@ -18,9 +18,7 @@ export class BudgetsService {
     private readonly userScope: UserScopeService,
   ) {}
 
-  async list(month: string, userEmail?: string): Promise<{ month: string; items: BudgetRecord[] }> {
-    const email = this.userScope.requireUserEmail(userEmail);
-
+  async list(month: string, email: string): Promise<{ month: string; items: BudgetRecord[] }> {
     const budgets = await this.prisma.budget.findMany({
       where: {
         month,
@@ -47,14 +45,13 @@ export class BudgetsService {
   }
 
   async upsert(input: {
-    userEmail?: string;
+    email: string;
     month: string;
     categoryId?: string;
     amount: number;
   }): Promise<BudgetRecord> {
-    const email = this.userScope.requireUserEmail(input.userEmail);
-    await this.userScope.assertCategoryOwnership(email, input.categoryId);
-    const userId = await this.userScope.getUserIdOrThrow(email);
+    await this.userScope.assertCategoryOwnership(input.email, input.categoryId);
+    const userId = await this.userScope.getUserIdOrThrow(input.email);
 
     const existing = await this.prisma.budget.findFirst({
       where: {
@@ -101,9 +98,7 @@ export class BudgetsService {
     };
   }
 
-  async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
-    const email = this.userScope.requireUserEmail(userEmail);
-
+  async remove(id: string, email: string): Promise<{ id: string; deleted: true }> {
     const existing = await this.prisma.budget.findFirst({
       where: {
         id,

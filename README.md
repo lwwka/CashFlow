@@ -47,12 +47,14 @@ The project now includes a basic JWT authentication foundation:
 - `POST /api/v1/auth/login`
 - `GET /api/v1/auth/me`
 
-Core business endpoints are in a transition state:
+Core business endpoints now use authenticated user context for the main product flow.
 
-- if a valid Bearer token is present, the backend prefers authenticated user context
-- if no token is present yet, the existing `userEmail` request flow still works
+## Demo Account
 
-This is a temporary bridge while the app moves away from request-level `userEmail`.
+The frontend login form is prefilled with the seeded demo account for faster product walkthroughs:
+
+- email: `demo@cashflow.local`
+- password: `demo-password-1234`
 
 ## Schema Source Of Truth
 
@@ -188,6 +190,42 @@ Frontend app:
 - `http://localhost:5173`
 
 The Vite dev server proxies `/api/*` to the Nest backend on `http://localhost:3000`.
+
+Copy `frontend/.env.example` to `frontend/.env.local` if you want to point the frontend at a specific backend base URL outside the local Vite proxy.
+
+## Production Env / Deploy Baseline
+
+### Railway backend
+
+- `DATABASE_URL=${{Postgres.DATABASE_URL}}`
+- `JWT_SECRET=<long random secret>`
+- `JWT_EXPIRES_IN=7d`
+- `NODE_ENV=production`
+- `CORS_ORIGIN=https://your-frontend-domain`
+- `ENABLE_SWAGGER=true` only when you intentionally want `/docs` exposed
+
+### Vercel frontend
+
+- `VITE_API_BASE_URL=https://your-railway-backend-domain/api/v1`
+
+After changing env vars:
+
+1. Redeploy the affected service
+2. Verify backend health at `/api/v1/health`
+3. Verify frontend login can reach the backend without CORS errors
+
+## MVP Smoke Test
+
+Run this short acceptance flow before sharing the app:
+
+1. Open the frontend and confirm the demo account is prefilled
+2. Log in successfully
+3. Confirm dashboard data loads without `Failed to fetch`
+4. Create a category
+5. Create a transaction
+6. Create or update a budget
+7. Refresh the page and confirm session + data still load
+8. Run backend e2e tests before pushing a release candidate
 
 ## Security Baseline
 

@@ -46,7 +46,7 @@ export class BudgetsController {
   upsert(@Body() body: BudgetDto, @CurrentUser() user: AuthUser): Promise<unknown> {
     return this.budgetsService.upsert({
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 
@@ -54,7 +54,7 @@ export class BudgetsController {
   patch(@Body() body: BudgetDto, @CurrentUser() user: AuthUser): Promise<unknown> {
     return this.budgetsService.upsert({
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 

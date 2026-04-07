@@ -6,14 +6,6 @@ import { PrismaService } from './prisma.service';
 export class UserScopeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  requireUserEmail(userEmail?: string): string {
-    if (!userEmail) {
-      throw new BadRequestException('userEmail is required');
-    }
-
-    return userEmail;
-  }
-
   async getUserIdOrThrow(userEmail: string): Promise<string> {
     const user = await this.prisma.user.findUnique({
       where: { email: userEmail },

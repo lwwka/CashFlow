@@ -43,8 +43,7 @@ export class TransactionsService {
     };
   }
 
-  async list(query: { userEmail?: string; month?: string; q?: string }): Promise<TransactionRecord[]> {
-    const email = this.userScope.requireUserEmail(query.userEmail);
+  async list(query: { email: string; month?: string; q?: string }): Promise<TransactionRecord[]> {
     const monthStart = query.month ? new Date(`${query.month}-01T00:00:00.000Z`) : null;
     const monthEnd = monthStart ? new Date(monthStart) : null;
     if (monthEnd) {
@@ -53,7 +52,7 @@ export class TransactionsService {
 
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        user: { email },
+        user: { email: query.email },
         deletedAt: null,
         ...(monthStart && monthEnd
           ? {
@@ -84,16 +83,15 @@ export class TransactionsService {
   }
 
   async create(input: {
-    userEmail?: string;
+    email: string;
     type: TransactionType;
     amount: number;
     occurredOn: string;
     categoryId?: string;
     note?: string;
   }): Promise<TransactionRecord> {
-    const email = this.userScope.requireUserEmail(input.userEmail);
-    await this.userScope.assertCategoryOwnership(email, input.categoryId);
-    const userId = await this.userScope.getUserIdOrThrow(email);
+    await this.userScope.assertCategoryOwnership(input.email, input.categoryId);
+    const userId = await this.userScope.getUserIdOrThrow(input.email);
 
     const transaction = await this.prisma.transaction.create({
       data: {
@@ -117,7 +115,7 @@ export class TransactionsService {
   async update(
     id: string,
     input: {
-      userEmail?: string;
+      email: string;
       type?: TransactionType;
       amount?: number;
       occurredOn?: string;
@@ -125,14 +123,13 @@ export class TransactionsService {
       note?: string;
     },
   ): Promise<TransactionRecord> {
-    const email = this.userScope.requireUserEmail(input.userEmail);
-    await this.userScope.assertCategoryOwnership(email, input.categoryId);
+    await this.userScope.assertCategoryOwnership(input.email, input.categoryId);
 
     const existing = await this.prisma.transaction.findFirst({
       where: {
         id,
         deletedAt: null,
-        user: { email },
+        user: { email: input.email },
       },
       select: { id: true },
     });
@@ -160,9 +157,7 @@ export class TransactionsService {
     return this.toRecord(transaction);
   }
 
-  async remove(id: string, userEmail?: string): Promise<{ id: string; deleted: true }> {
-    const email = this.userScope.requireUserEmail(userEmail);
-
+  async remove(id: string, email: string): Promise<{ id: string; deleted: true }> {
     const existing = await this.prisma.transaction.findFirst({
       where: {
         id,

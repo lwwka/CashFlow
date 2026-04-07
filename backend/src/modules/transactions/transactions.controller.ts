@@ -93,7 +93,7 @@ export class TransactionsController {
   list(@Query() query: QueryTransactionsDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord[]> {
     return this.transactionsService.list({
       ...query,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 
@@ -101,7 +101,7 @@ export class TransactionsController {
   create(@Body() body: CreateTransactionDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord> {
     return this.transactionsService.create({
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 
@@ -109,7 +109,7 @@ export class TransactionsController {
   update(@Param('id') id: string, @Body() body: UpdateTransactionDto, @CurrentUser() user: AuthUser): Promise<TransactionRecord> {
     return this.transactionsService.update(id, {
       ...body,
-      userEmail: user.email,
+      email: user.email,
     });
   }
 

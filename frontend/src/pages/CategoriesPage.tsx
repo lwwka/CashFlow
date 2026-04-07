@@ -15,6 +15,7 @@ export function CategoriesPage(): JSX.Element {
   const { categories, error, reload } = useCategories();
   const { t } = usePreferences();
   const [form, setForm] = useState({ name: '', type: 'expense' });
+  const normalizedName = form.name.trim();
   const { status, isSaving, create } = useCategoryMutations({
     onAfterCreate: async () => reload(),
     onErrorMessage: t('status.failedCategory'),
@@ -23,9 +24,12 @@ export function CategoriesPage(): JSX.Element {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (!normalizedName) {
+      return;
+    }
 
     const didCreate = await create({
-      name: form.name,
+      name: normalizedName,
       type: form.type as 'income' | 'expense',
     });
 
@@ -38,6 +42,7 @@ export function CategoriesPage(): JSX.Element {
     <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
       <Panel title={t('categories.create')} eyebrow={t('categories.reusable')}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <p className="text-sm leading-6 text-white/60">{t('categories.helper')}</p>
           <label className="field">
             <span className="field-label">{t('categories.name')}</span>
             <input
@@ -58,7 +63,7 @@ export function CategoriesPage(): JSX.Element {
               <option value="income">{t('transactions.type.income')}</option>
             </select>
           </label>
-          <button className="primary-button w-full" disabled={isSaving} type="submit">
+          <button className="primary-button w-full" disabled={isSaving || !normalizedName} type="submit">
             {t('categories.save')}
           </button>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}

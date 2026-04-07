@@ -28,11 +28,14 @@ export function TransactionsPage(): JSX.Element {
   const error = transactionsError ?? categoriesError;
   const [form, setForm] = useState({
     type: 'expense',
-    amount: '0',
+    amount: '',
     occurredOn: `${month}-01`,
     categoryId: '',
     note: '',
   });
+  const availableCategories = categories.filter((category) => category.type === form.type);
+  const isAmountValid = Number(form.amount) > 0;
+  const isFormValid = isAmountValid && Boolean(form.occurredOn);
   const { status, isSaving, create, remove } = useTransactionMutations({
     onAfterCreate: async () => Promise.all([reloadTransactions(), reloadCategories()]).then(() => undefined),
     onAfterDelete: async () => reloadTransactions(),
@@ -43,6 +46,10 @@ export function TransactionsPage(): JSX.Element {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (!isFormValid) {
+      return;
+    }
+
     const didCreate = await create({
       type: form.type as 'income' | 'expense',
       amount: Number(form.amount),
@@ -52,7 +59,7 @@ export function TransactionsPage(): JSX.Element {
     });
 
     if (didCreate) {
-      setForm((current) => ({ ...current, amount: '0', note: '' }));
+      setForm((current) => ({ ...current, amount: '', note: '' }));
     }
   }
 
@@ -107,16 +114,15 @@ export function TransactionsPage(): JSX.Element {
                 onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
               >
                 <option value="">{t('transactions.uncategorized')}</option>
-                {categories
-                  .filter((category) => category.type === form.type)
-                  .map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                {availableCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
+          {availableCategories.length === 0 ? <p className="text-xs text-white/50">{t('transactions.categoryHint')}</p> : null}
 
           <label className="field">
             <span className="field-label">{t('transactions.note')}</span>
@@ -128,7 +134,8 @@ export function TransactionsPage(): JSX.Element {
             />
           </label>
 
-          <button className="primary-button w-full" disabled={isSaving} type="submit">
+          {!isAmountValid ? <p className="text-sm text-white/55">{t('transactions.amountRequired')}</p> : null}
+          <button className="primary-button w-full" disabled={isSaving || !isFormValid} type="submit">
             {isSaving ? t('transactions.saving') : t('transactions.createButton')}
           </button>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}
