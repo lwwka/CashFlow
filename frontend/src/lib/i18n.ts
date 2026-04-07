@@ -3,6 +3,7 @@ export type Locale = 'en' | 'zh';
 export type TranslationKey =
   | 'nav.dashboard'
   | 'nav.goals'
+  | 'nav.insights'
   | 'nav.reports'
   | 'nav.transactions'
   | 'nav.categories'
@@ -186,6 +187,7 @@ type Dict = Record<TranslationKey, string>;
 const en: Dict = {
   'nav.dashboard': 'Dashboard',
   'nav.goals': 'Goals',
+  'nav.insights': 'Insights',
   'nav.reports': 'Reports',
   'nav.transactions': 'Transactions',
   'nav.categories': 'Categories',
@@ -369,6 +371,7 @@ const en: Dict = {
 const zh: Dict = {
   'nav.dashboard': '總覽',
   'nav.goals': '目標',
+  'nav.insights': '分析',
   'nav.reports': '報表',
   'nav.transactions': '交易',
   'nav.categories': '分類',
