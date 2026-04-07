@@ -18,12 +18,14 @@ export function CategoriesPage(): JSX.Element {
   const [form, setForm] = useState({ name: '', type: 'expense' });
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const normalizedName = form.name.trim();
-  const { status, isSaving, create, update } = useCategoryMutations({
+  const { status, isSaving, create, update, remove } = useCategoryMutations({
     onAfterCreate: async () => reload(),
     onAfterUpdate: async () => reload(),
+    onAfterDelete: async () => reload(),
     onErrorMessage: t('status.failedCategory'),
     onSavedMessage: t('categories.saved'),
     onUpdatedMessage: t('categories.updated'),
+    onDeletedMessage: t('categories.deleted'),
   });
 
   function resetForm(): void {
@@ -34,6 +36,14 @@ export function CategoriesPage(): JSX.Element {
   function startEditing(category: Category): void {
     setEditingCategoryId(category.id);
     setForm({ name: category.name, type: category.type });
+  }
+
+  async function handleDelete(id: string): Promise<void> {
+    if (editingCategoryId === id) {
+      resetForm();
+    }
+
+    await remove(id);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -115,13 +125,18 @@ export function CategoriesPage(): JSX.Element {
             <div key={category.id} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
               <p className="font-medium text-white">{category.name}</p>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">{category.type}</p>
-              <button
-                className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
-                onClick={() => startEditing(category)}
-                type="button"
-              >
-                {t('categories.edit')}
-              </button>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
+                  onClick={() => startEditing(category)}
+                  type="button"
+                >
+                  {t('categories.edit')}
+                </button>
+                <button className="danger-button" onClick={() => void handleDelete(category.id)} type="button">
+                  {t('common.delete')}
+                </button>
+              </div>
             </div>
           ))}
           {categories.length === 0 ? <p className="text-sm text-white/55">{t('categories.empty')}</p> : null}

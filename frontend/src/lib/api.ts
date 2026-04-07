@@ -95,6 +95,12 @@ export function updateCategory(
   });
 }
 
+export function deleteCategory(id: string): Promise<{ id: string; deleted: true }> {
+  return requestJson(`/categories/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export function createTransaction(payload: {
   type: 'income' | 'expense';
   amount: number;

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 
-import { createCategory, updateCategory } from '../lib/api';
+import { createCategory, deleteCategory, updateCategory } from '../lib/api';
 
 interface UseCategoryMutationsOptions {
   onAfterCreate?: () => Promise<void>;
   onAfterUpdate?: () => Promise<void>;
+  onAfterDelete?: () => Promise<void>;
   onErrorMessage: string;
   onSavedMessage: string;
   onUpdatedMessage: string;
+  onDeletedMessage: string;
 }
 
 export function useCategoryMutations(options: UseCategoryMutationsOptions) {
@@ -48,10 +50,23 @@ export function useCategoryMutations(options: UseCategoryMutationsOptions) {
     }
   }
 
+  async function remove(id: string): Promise<void> {
+    setStatus(null);
+
+    try {
+      await deleteCategory(id);
+      setStatus(options.onDeletedMessage);
+      await options.onAfterDelete?.();
+    } catch (nextError) {
+      setStatus(nextError instanceof Error ? nextError.message : options.onErrorMessage);
+    }
+  }
+
   return {
     status,
     isSaving,
     create,
     update,
+    remove,
   };
 }

@@ -65,6 +65,7 @@ export type TranslationKey =
   | 'categories.cancelEdit'
   | 'categories.saved'
   | 'categories.updated'
+  | 'categories.deleted'
   | 'categories.catalog'
   | 'categories.currentUser'
   | 'categories.empty'
@@ -157,6 +158,7 @@ const en: Dict = {
   'categories.cancelEdit': 'Cancel edit',
   'categories.saved': 'Category saved.',
   'categories.updated': 'Category updated.',
+  'categories.deleted': 'Category deleted.',
   'categories.catalog': 'Category Catalog',
   'categories.currentUser': 'Current user',
   'categories.empty': 'No categories yet.',
@@ -247,6 +249,7 @@ const zh: Dict = {
   'categories.cancelEdit': '取消編輯',
   'categories.saved': '分類已儲存。',
   'categories.updated': '分類已更新。',
+  'categories.deleted': '分類已刪除。',
   'categories.catalog': '分類清單',
   'categories.currentUser': '目前使用者',
   'categories.empty': '尚未有分類。',
