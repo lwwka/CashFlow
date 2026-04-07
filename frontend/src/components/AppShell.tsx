@@ -20,14 +20,10 @@ export function AppShell(props: AppShellProps): JSX.Element {
   const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
   const appGitSha = typeof __APP_GIT_SHA__ !== 'undefined' ? __APP_GIT_SHA__ : 'local';
   const appBuildDate =
-    typeof __APP_BUILD_DATE__ !== 'undefined'
-      ? new Date(__APP_BUILD_DATE__).toLocaleString()
-      : 'local build';
-  const versionMeta = [
-    `frontend ${appVersion}`,
-    `sha ${appGitSha}`,
-    appBuildDate,
-  ];
+    typeof __APP_BUILD_DATE__ !== 'undefined' ? new Date(__APP_BUILD_DATE__) : null;
+  const formattedBuildDate = appBuildDate
+    ? `${appBuildDate.getFullYear()}-${String(appBuildDate.getMonth() + 1).padStart(2, '0')}-${String(appBuildDate.getDate()).padStart(2, '0')} ${String(appBuildDate.getHours()).padStart(2, '0')}:${String(appBuildDate.getMinutes()).padStart(2, '0')}`
+    : 'local build';
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/goals', label: t('nav.goals') },
@@ -134,10 +130,17 @@ export function AppShell(props: AppShellProps): JSX.Element {
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm">
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-[11px] leading-5 text-white/45">
-                {versionMeta.map((item) => (
-                  <p key={item}>{item}</p>
-                ))}
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Build</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                  <span className="rounded-full border border-reef/20 bg-reef/10 px-2.5 py-1 font-semibold text-reef">
+                    v{appVersion}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
+                    {appGitSha}
+                  </span>
+                </div>
+                <p className="mt-3 text-[11px] leading-5 text-white/45">{formattedBuildDate}</p>
               </div>
               <button
                 className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
