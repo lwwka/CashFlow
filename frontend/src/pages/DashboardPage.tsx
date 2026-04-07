@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 
 import { MetricCard } from '../components/MetricCard';
 import { Panel } from '../components/Panel';
@@ -101,6 +101,56 @@ export function DashboardPage(): JSX.Element {
         <MetricCard label={t('metric.income')} value={formatCurrency(overview?.totalIncome ?? 0)} tone="positive" />
         <MetricCard label={t('metric.expense')} value={formatCurrency(overview?.totalExpense ?? 0)} tone="warning" />
         <MetricCard label={t('metric.balance')} value={formatCurrency(overview?.balance ?? 0)} tone="neutral" />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+        <Panel title={t('dashboard.quickStart')} eyebrow={t('dashboard.startHere')}>
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">{t('dashboard.stepCategories')}</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepCategoriesHint')}</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/categories">
+                {t('dashboard.openCategories')}
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">{t('dashboard.stepTransactions')}</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepTransactionsHint')}</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/transactions">
+                {t('dashboard.openTransactions')}
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">{t('dashboard.stepGoals')}</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepGoalsHint')}</p>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link className="inline-flex text-sm font-semibold text-reef" to="/goals">
+                  {t('dashboard.openGoals')}
+                </Link>
+                <Link className="inline-flex text-sm font-semibold text-sand" to="/insights">
+                  {t('dashboard.openInsights')}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title={t('dashboard.summaryGuide')} eyebrow={t('dashboard.whatThisPageMeans')}>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.income')}</p>
+              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.incomeHint')}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.expense')}</p>
+              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.expenseHint')}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.balance')}</p>
+              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.balanceHint')}</p>
+            </div>
+          </div>
+        </Panel>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">

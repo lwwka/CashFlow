@@ -6,6 +6,7 @@ import type {
   CategoriesResponse,
   Category,
   DownloadReportResult,
+  FinancialGoal,
   ImportTransactionRow,
   ImportTransactionsResult,
   MonthlyGoal,
@@ -55,12 +56,26 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
 
+  const contentType = response.headers.get('content-type') ?? '';
+  const text = await response.text();
+
   if (!response.ok) {
-    const text = await response.text();
     throw new ApiError(text || `Request failed with status ${response.status}`, response.status);
   }
 
-  return (await response.json()) as T;
+  if (!text.trim()) {
+    throw new ApiError(`Empty response from ${path}`, response.status);
+  }
+
+  if (!contentType.includes('application/json')) {
+    throw new ApiError(text || `Unexpected response type from ${path}`, response.status);
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiError(text || `Invalid JSON response from ${path}`, response.status);
+  }
 }
 
 async function requestBlob(path: string, init?: RequestInit): Promise<DownloadReportResult> {
@@ -115,6 +130,17 @@ export function fetchMonthlyGoal(month: string): Promise<MonthlyGoal | null> {
 
 export function upsertMonthlyGoal(payload: { month: string; savingsTarget: number }): Promise<MonthlyGoal> {
   return requestJson('/monthly-goals', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function fetchFinancialGoal(goalType: string): Promise<FinancialGoal | null> {
+  return requestJson(`/financial-goals${buildQuery({ goalType })}`);
+}
+
+export function upsertFinancialGoal(payload: { goalType: string; targetAmount: number }): Promise<FinancialGoal> {
+  return requestJson('/financial-goals', {
     method: 'PUT',
     body: JSON.stringify(payload),
   });

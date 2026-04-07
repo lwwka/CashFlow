@@ -108,6 +108,18 @@ export function AppShell(props: AppShellProps): JSX.Element {
                   <div className="rounded-2xl border border-white/10 bg-black/15 px-3 py-3 text-[11px] leading-5 text-white/55">
                     {props.fromDate && props.toDate ? t('shell.rangeModeCustom') : t('shell.rangeModeMonth')}
                   </div>
+                  {props.fromDate || props.toDate ? (
+                    <button
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
+                      onClick={() => {
+                        props.onFromDateChange('');
+                        props.onToDateChange('');
+                      }}
+                      type="button"
+                    >
+                      {t('shell.clearRange')}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ) : null}

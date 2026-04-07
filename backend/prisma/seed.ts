@@ -25,6 +25,10 @@ const seedPayload = {
     month: '2026-04',
     savingsTarget: 18000,
   },
+  financialGoal: {
+    goalType: 'long_term_savings',
+    targetAmount: 100000,
+  },
 };
 
 async function main(): Promise<void> {
@@ -84,6 +88,14 @@ async function main(): Promise<void> {
       userId: user.id,
       month: seedPayload.monthlyGoal.month,
       savingsTarget: seedPayload.monthlyGoal.savingsTarget,
+    },
+  });
+
+  await prisma.financialGoal.create({
+    data: {
+      userId: user.id,
+      goalType: seedPayload.financialGoal.goalType,
+      targetAmount: seedPayload.financialGoal.targetAmount,
     },
   });
 

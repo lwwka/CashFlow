@@ -64,6 +64,16 @@ CREATE TABLE IF NOT EXISTS monthly_goals (
   CONSTRAINT monthly_goals_user_month_uniq UNIQUE (user_id, month)
 );
 
+CREATE TABLE IF NOT EXISTS financial_goals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  goal_type VARCHAR(32) NOT NULL,
+  target_amount NUMERIC(12, 2) NOT NULL CHECK (target_amount >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT financial_goals_user_type_uniq UNIQUE (user_id, goal_type)
+);
+
 CREATE INDEX IF NOT EXISTS idx_transactions_user_date
   ON transactions(user_id, occurred_on DESC)
   WHERE deleted_at IS NULL;
@@ -77,5 +87,8 @@ CREATE INDEX IF NOT EXISTS idx_budgets_user_month
 
 CREATE INDEX IF NOT EXISTS idx_monthly_goals_user_month
   ON monthly_goals(user_id, month);
+
+CREATE INDEX IF NOT EXISTS idx_financial_goals_user_type
+  ON financial_goals(user_id, goal_type);
 
 COMMIT;

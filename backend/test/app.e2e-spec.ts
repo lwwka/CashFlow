@@ -14,6 +14,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.financialGoal.deleteMany();
     await prisma.monthlyGoal.deleteMany();
     await prisma.budget.deleteMany();
     await prisma.transaction.deleteMany();
@@ -147,6 +148,24 @@ describe('CashFlow core flows (e2e)', () => {
 
     expect(monthlyGoalLookupResponse.status).toBe(200);
     expect(monthlyGoalLookupResponse.body.savingsTarget).toBe(2500);
+
+    const financialGoalResponse = await request(app.getHttpServer())
+      .put('/api/v1/financial-goals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        goalType: 'long_term_savings',
+        targetAmount: 100000,
+      });
+
+    expect(financialGoalResponse.status).toBe(200);
+    expect(financialGoalResponse.body.targetAmount).toBe(100000);
+
+    const financialGoalLookupResponse = await request(app.getHttpServer())
+      .get('/api/v1/financial-goals?goalType=long_term_savings')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(financialGoalLookupResponse.status).toBe(200);
+    expect(financialGoalLookupResponse.body.targetAmount).toBe(100000);
   });
 
   it('updates and deletes transactions inside an authenticated flow', async () => {

@@ -11,6 +11,12 @@ export interface MonthlyGoal {
   savingsTarget: number;
 }
 
+export interface FinancialGoal {
+  id: string;
+  goalType: string;
+  targetAmount: number;
+}
+
 export interface DownloadReportResult {
   blob: Blob;
   filename: string;

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { Panel } from '../components/Panel';
+import { useFinancialGoal } from '../hooks/useFinancialGoal';
+import { useFinancialGoalMutations } from '../hooks/useFinancialGoalMutations';
 import { useTransactions } from '../hooks/useTransactions';
 import { useMonthlyGoal } from '../hooks/useMonthlyGoal';
 import { useOverview } from '../hooks/useOverview';
@@ -115,7 +117,18 @@ export function InsightsPage(): JSX.Element {
   const { transactions, isLoading: isTransactionsLoading, error: transactionsError } = useTransactions(filter);
   const { transactions: allTransactions, isLoading: isLifetimeLoading, error: lifetimeError } = useTransactions();
   const { monthlyGoal, isLoading: isGoalLoading, error: goalError } = useMonthlyGoal(month);
+  const {
+    financialGoal,
+    isLoading: isFinancialGoalLoading,
+    error: financialGoalError,
+    reload: reloadFinancialGoal,
+  } = useFinancialGoal('long_term_savings');
   const [longTermGoalInput, setLongTermGoalInput] = useState('');
+  const { status: financialGoalStatusMessage, isSaving: isSavingFinancialGoal, save } = useFinancialGoalMutations({
+    onAfterSave: async () => reloadFinancialGoal(),
+    onErrorMessage: t('dashboard.goalSaveFailed'),
+    onSavedMessage: t('dashboard.goalSaved'),
+  });
 
   const monthProgress = useMemo(() => getMonthProgress(month), [month]);
   const currentSavings = overview?.balance ?? 0;
@@ -142,19 +155,24 @@ export function InsightsPage(): JSX.Element {
     (worst, point) => (!worst || point.net < worst.net ? point : worst),
     null,
   );
-  const isLoading = isOverviewLoading || isTransactionsLoading || isLifetimeLoading || isGoalLoading;
-  const error = overviewError ?? transactionsError ?? lifetimeError ?? goalError;
+  const isLoading =
+    isOverviewLoading || isTransactionsLoading || isLifetimeLoading || isGoalLoading || isFinancialGoalLoading;
+  const error = overviewError ?? transactionsError ?? lifetimeError ?? goalError ?? financialGoalError;
 
   useEffect(() => {
-    const stored = window.localStorage.getItem('cashflow-long-term-goal');
-    setLongTermGoalInput(stored ?? '10000');
-  }, []);
+    setLongTermGoalInput(financialGoal ? String(financialGoal.targetAmount) : '10000');
+  }, [financialGoal?.id, financialGoal?.targetAmount]);
 
-  useEffect(() => {
-    if (longTermGoalInput !== '') {
-      window.localStorage.setItem('cashflow-long-term-goal', longTermGoalInput);
+  async function handleFinancialGoalSave(): Promise<void> {
+    if (longTermGoalInput === '' || Number(longTermGoalInput) < 0) {
+      return;
     }
-  }, [longTermGoalInput]);
+
+    await save({
+      goalType: 'long_term_savings',
+      targetAmount: Number(longTermGoalInput),
+    });
+  }
 
   return (
     <>
@@ -246,6 +264,15 @@ export function InsightsPage(): JSX.Element {
                 onChange={(event) => setLongTermGoalInput(event.target.value)}
               />
             </label>
+            <button
+              className="primary-button w-full"
+              disabled={isSavingFinancialGoal || longTermGoalInput === '' || Number(longTermGoalInput) < 0}
+              onClick={() => void handleFinancialGoalSave()}
+              type="button"
+            >
+              {t('dashboard.saveGoal')}
+            </button>
+            {financialGoalStatusMessage ? <p className="text-sm text-white/70">{financialGoalStatusMessage}</p> : null}
             <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm text-white/55">{t('dashboard.longTermProgress')}</p>

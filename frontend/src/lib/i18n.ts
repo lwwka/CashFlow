@@ -19,6 +19,7 @@ export type TranslationKey =
   | 'shell.customRangeHint'
   | 'shell.rangeModeMonth'
   | 'shell.rangeModeCustom'
+  | 'shell.clearRange'
   | 'shell.dashboardRangeHint'
   | 'shell.goalsRangeHint'
   | 'dashboard.eyebrow'
@@ -68,6 +69,23 @@ export type TranslationKey =
   | 'dashboard.worstDay'
   | 'dashboard.spendingHotspots'
   | 'dashboard.topCategories'
+  | 'dashboard.quickStart'
+  | 'dashboard.startHere'
+  | 'dashboard.stepCategories'
+  | 'dashboard.stepCategoriesHint'
+  | 'dashboard.openCategories'
+  | 'dashboard.stepTransactions'
+  | 'dashboard.stepTransactionsHint'
+  | 'dashboard.openTransactions'
+  | 'dashboard.stepGoals'
+  | 'dashboard.stepGoalsHint'
+  | 'dashboard.openGoals'
+  | 'dashboard.openInsights'
+  | 'dashboard.summaryGuide'
+  | 'dashboard.whatThisPageMeans'
+  | 'dashboard.incomeHint'
+  | 'dashboard.expenseHint'
+  | 'dashboard.balanceHint'
   | 'dashboard.noExpenseData'
   | 'dashboard.budgetPulse'
   | 'dashboard.budgetVsActual'
@@ -203,6 +221,7 @@ const en: Dict = {
   'shell.customRangeHint': 'Fill both dates to let Transactions and Reports switch from monthly view to a custom range.',
   'shell.rangeModeMonth': 'Current mode: monthly view. Transactions, reports, dashboard, and goals use the selected month.',
   'shell.rangeModeCustom': 'Current mode: custom range. Transactions, reports, dashboard, and goals now use your from/to dates.',
+  'shell.clearRange': 'Clear custom range',
   'shell.dashboardRangeHint': 'Dashboard cards and transaction insights now use your custom range. Budget cards still use the selected month.',
   'shell.goalsRangeHint': 'Goal calculations now reflect your custom range, while the savings target editor still saves the selected month target.',
   'dashboard.eyebrow': 'Monthly Pulse',
@@ -252,6 +271,23 @@ const en: Dict = {
   'dashboard.bestDay': 'Best day',
   'dashboard.worstDay': 'Worst day',
   'dashboard.spendingHotspots': 'Spending hotspots',
+  'dashboard.quickStart': 'Quick start',
+  'dashboard.startHere': 'Start here',
+  'dashboard.stepCategories': '1. Create a few categories first',
+  'dashboard.stepCategoriesHint': 'Create labels like Food, Transport, Salary, and Rent so later screens stay clear.',
+  'dashboard.openCategories': 'Open categories',
+  'dashboard.stepTransactions': '2. Add or import transactions',
+  'dashboard.stepTransactionsHint': 'You can type transactions one by one or import several days from Excel/CSV.',
+  'dashboard.openTransactions': 'Open transactions',
+  'dashboard.stepGoals': '3. Set your money targets',
+  'dashboard.stepGoalsHint': 'Use Goals for monthly targets and Insights for longer-term savings direction.',
+  'dashboard.openGoals': 'Open goals',
+  'dashboard.openInsights': 'Open insights',
+  'dashboard.summaryGuide': 'How to read this page',
+  'dashboard.whatThisPageMeans': 'High-level view',
+  'dashboard.incomeHint': 'How much money came in during the selected month.',
+  'dashboard.expenseHint': 'How much money went out during the selected month.',
+  'dashboard.balanceHint': 'Income minus expense. Positive means you kept more than you spent.',
   'dashboard.topCategories': 'Top expense categories',
   'dashboard.noExpenseData': 'No expense transactions for this month yet.',
   'dashboard.budgetPulse': 'Budget pulse',
@@ -387,6 +423,7 @@ const zh: Dict = {
   'shell.customRangeHint': '同時填入開始和結束日期後，交易與報表頁會由單月模式切換成自訂時間範圍。',
   'shell.rangeModeMonth': '目前模式：單月檢視。交易、報表、總覽與目標都會使用所選月份。',
   'shell.rangeModeCustom': '目前模式：自訂時間。交易、報表、總覽與目標會改用你設定的開始/結束日期。',
+  'shell.clearRange': '清除自訂時間',
   'shell.dashboardRangeHint': '總覽卡片與交易洞察已改用自訂時間範圍；預算卡片仍維持所選月份。',
   'shell.goalsRangeHint': '目標頁的數字已改用自訂時間範圍；每月儲蓄目標仍會儲存到所選月份。',
   'dashboard.eyebrow': '每月脈搏',
@@ -435,6 +472,23 @@ const zh: Dict = {
   'dashboard.bestDay': '表現最好的一天',
   'dashboard.worstDay': '壓力最大的一天',
   'dashboard.spendingHotspots': '支出熱點',
+  'dashboard.quickStart': '快速開始',
+  'dashboard.startHere': '先由這裡開始',
+  'dashboard.stepCategories': '1. 先建立幾個常用分類',
+  'dashboard.stepCategoriesHint': '先建立飲食、交通、薪水、租金等分類，後面頁面會清楚很多。',
+  'dashboard.openCategories': '前往分類',
+  'dashboard.stepTransactions': '2. 新增或匯入交易',
+  'dashboard.stepTransactionsHint': '你可以逐筆輸入，也可以把 Excel / CSV 的多日資料一次匯入。',
+  'dashboard.openTransactions': '前往交易',
+  'dashboard.stepGoals': '3. 設定理財目標',
+  'dashboard.stepGoalsHint': '目標頁看每月目標，分析頁看長期儲蓄方向。',
+  'dashboard.openGoals': '前往目標',
+  'dashboard.openInsights': '前往分析',
+  'dashboard.summaryGuide': '這頁怎樣看',
+  'dashboard.whatThisPageMeans': '高層總覽',
+  'dashboard.incomeHint': '這個月份總共進帳多少。',
+  'dashboard.expenseHint': '這個月份總共花了多少。',
+  'dashboard.balanceHint': '收入減支出。正數代表這個月留住的錢比花出去的多。',
   'dashboard.topCategories': '主要支出分類',
   'dashboard.noExpenseData': '本月尚未有支出交易。',
   'dashboard.budgetPulse': '預算脈搏',
