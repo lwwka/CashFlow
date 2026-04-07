@@ -74,7 +74,11 @@ export type TranslationKey =
   | 'budgets.helper'
   | 'budgets.amountRequired'
   | 'budgets.save'
+  | 'budgets.edit'
+  | 'budgets.update'
+  | 'budgets.cancelEdit'
   | 'budgets.saved'
+  | 'budgets.deleted'
   | 'budgets.stored'
   | 'budgets.emptyMonth'
   | 'theme.dark'
@@ -162,7 +166,11 @@ const en: Dict = {
   'budgets.helper': 'You can save a whole-month cap or assign a budget to one expense category.',
   'budgets.amountRequired': 'Enter a budget amount of 0 or more.',
   'budgets.save': 'Save Budget',
+  'budgets.edit': 'Edit Budget',
+  'budgets.update': 'Update Budget',
+  'budgets.cancelEdit': 'Cancel edit',
   'budgets.saved': 'Budget saved.',
+  'budgets.deleted': 'Budget deleted.',
   'budgets.stored': 'Stored in PostgreSQL',
   'budgets.emptyMonth': 'No budgets for this month yet.',
   'theme.dark': 'Dark',
@@ -248,7 +256,11 @@ const zh: Dict = {
   'budgets.helper': '你可以設定整月總預算，或只為單一支出分類設定上限。',
   'budgets.amountRequired': '請輸入大於或等於 0 的預算金額。',
   'budgets.save': '儲存預算',
+  'budgets.edit': '編輯預算',
+  'budgets.update': '更新預算',
+  'budgets.cancelEdit': '取消編輯',
   'budgets.saved': '預算已儲存。',
+  'budgets.deleted': '預算已刪除。',
   'budgets.stored': '已寫入資料庫',
   'budgets.emptyMonth': '本月尚未有預算。',
   'theme.dark': '黑色',

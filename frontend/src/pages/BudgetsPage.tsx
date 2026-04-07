@@ -6,6 +6,7 @@ import { useBudgetMutations } from '../hooks/useBudgetMutations';
 import { useBudgets } from '../hooks/useBudgets';
 import { useCategories } from '../hooks/useCategories';
 import { usePreferences } from '../providers/PreferencesProvider';
+import type { Budget } from '../types';
 
 interface ShellContext {
   month: string;
@@ -27,12 +28,28 @@ export function BudgetsPage(): JSX.Element {
   const error = budgetsError ?? categoriesError;
   const expenseCategories = categories.filter((category) => category.type === 'expense');
   const [form, setForm] = useState({ amount: '', categoryId: '' });
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
   const isAmountValid = Number(form.amount) >= 0 && form.amount !== '';
-  const { status, isSaving, upsert } = useBudgetMutations({
+  const { status, isSaving, upsert, remove } = useBudgetMutations({
     onAfterUpsert: async () => Promise.all([reloadBudgets(), reloadCategories()]).then(() => undefined),
+    onAfterDelete: async () => reloadBudgets(),
     onErrorMessage: t('status.failedBudget'),
     onSavedMessage: t('budgets.saved'),
+    onDeletedMessage: t('budgets.deleted'),
   });
+
+  function resetForm(): void {
+    setEditingBudgetId(null);
+    setForm({ amount: '', categoryId: '' });
+  }
+
+  function startEditing(budget: Budget): void {
+    setEditingBudgetId(budget.id);
+    setForm({
+      amount: String(budget.amount),
+      categoryId: budget.categoryId ?? '',
+    });
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -40,16 +57,28 @@ export function BudgetsPage(): JSX.Element {
       return;
     }
 
-    await upsert({
+    const didSave = await upsert({
       month,
       amount: Number(form.amount),
       categoryId: form.categoryId || undefined,
     });
+
+    if (didSave) {
+      resetForm();
+    }
+  }
+
+  async function handleDelete(id: string): Promise<void> {
+    if (editingBudgetId === id) {
+      resetForm();
+    }
+
+    await remove(id);
   }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-      <Panel title={t('budgets.writer')} eyebrow={month}>
+      <Panel title={editingBudgetId ? t('budgets.edit') : t('budgets.writer')} eyebrow={month}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
           <p className="text-sm leading-6 text-white/60">{t('budgets.helper')}</p>
           <label className="field">
@@ -80,9 +109,20 @@ export function BudgetsPage(): JSX.Element {
             />
           </label>
           {!isAmountValid ? <p className="text-sm text-white/55">{t('budgets.amountRequired')}</p> : null}
-          <button className="primary-button w-full" disabled={isSaving || !isAmountValid} type="submit">
-            {t('budgets.save')}
-          </button>
+          <div className="space-y-3">
+            <button className="primary-button w-full" disabled={isSaving || !isAmountValid} type="submit">
+              {editingBudgetId ? t('budgets.update') : t('budgets.save')}
+            </button>
+            {editingBudgetId ? (
+              <button
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                onClick={resetForm}
+                type="button"
+              >
+                {t('budgets.cancelEdit')}
+              </button>
+            ) : null}
+          </div>
           {status ? <p className="text-sm text-white/70">{status}</p> : null}
           {error ? <p className="text-sm text-coral">{error}</p> : null}
         </form>
@@ -92,9 +132,23 @@ export function BudgetsPage(): JSX.Element {
         <div className="space-y-3">
           {budgets.map((budget) => (
             <div key={budget.id} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-white">{budget.categoryName || t('budgets.wholeMonth')}</p>
-                <p className="text-sand">{formatCurrency(budget.amount)}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-white">{budget.categoryName || t('budgets.wholeMonth')}</p>
+                  <p className="mt-2 text-sand">{formatCurrency(budget.amount)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 transition hover:bg-white/10"
+                    onClick={() => startEditing(budget)}
+                    type="button"
+                  >
+                    {t('transactions.edit')}
+                  </button>
+                  <button className="danger-button" onClick={() => void handleDelete(budget.id)} type="button">
+                    {t('common.delete')}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

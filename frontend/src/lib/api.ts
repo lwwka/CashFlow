@@ -140,3 +140,9 @@ export function upsertBudget(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+export function deleteBudget(id: string): Promise<{ id: string; deleted: true }> {
+  return requestJson(`/budgets/${id}`, {
+    method: 'DELETE',
+  });
+}

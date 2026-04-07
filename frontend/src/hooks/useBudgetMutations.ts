@@ -1,11 +1,13 @@
 import { useState } from 'react';
 
-import { upsertBudget } from '../lib/api';
+import { deleteBudget, upsertBudget } from '../lib/api';
 
 interface UseBudgetMutationsOptions {
   onAfterUpsert?: () => Promise<void>;
+  onAfterDelete?: () => Promise<void>;
   onErrorMessage: string;
   onSavedMessage: string;
+  onDeletedMessage: string;
 }
 
 export function useBudgetMutations(options: UseBudgetMutationsOptions) {
@@ -29,9 +31,22 @@ export function useBudgetMutations(options: UseBudgetMutationsOptions) {
     }
   }
 
+  async function remove(id: string): Promise<void> {
+    setStatus(null);
+
+    try {
+      await deleteBudget(id);
+      setStatus(options.onDeletedMessage);
+      await options.onAfterDelete?.();
+    } catch (nextError) {
+      setStatus(nextError instanceof Error ? nextError.message : options.onErrorMessage);
+    }
+  }
+
   return {
     status,
     isSaving,
     upsert,
+    remove,
   };
 }
