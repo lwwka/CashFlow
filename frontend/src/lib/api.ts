@@ -1,4 +1,4 @@
-import type { AuthProfile, AuthResponse, Budget, BudgetsResponse, CategoriesResponse, Category, Overview, Transaction } from '../types';
+import type { AuthProfile, AuthResponse, Budget, BudgetsResponse, CategoriesResponse, Category, DownloadReportResult, MonthlyGoal, Overview, Transaction } from '../types';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
@@ -44,6 +44,30 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
+async function requestBlob(path: string, init?: RequestInit): Promise<DownloadReportResult> {
+  const token = localStorage.getItem('cashflow-access-token');
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+    ...init,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new ApiError(text || `Request failed with status ${response.status}`, response.status);
+  }
+
+  const contentDisposition = response.headers.get('content-disposition') ?? '';
+  const filenameMatch = contentDisposition.match(/filename="([^"]+)"/i);
+
+  return {
+    blob: await response.blob(),
+    filename: filenameMatch?.[1] ?? 'cashflow-report.csv',
+  };
+}
+
 export function register(payload: { email: string; password: string }): Promise<AuthResponse> {
   return requestJson('/auth/register', {
     method: 'POST',
@@ -64,6 +88,17 @@ export function fetchMe(): Promise<AuthProfile> {
 
 export function fetchOverview(month: string): Promise<Overview> {
   return requestJson(`/overview${buildQuery({ month })}`);
+}
+
+export function fetchMonthlyGoal(month: string): Promise<MonthlyGoal | null> {
+  return requestJson(`/monthly-goals${buildQuery({ month })}`);
+}
+
+export function upsertMonthlyGoal(payload: { month: string; savingsTarget: number }): Promise<MonthlyGoal> {
+  return requestJson('/monthly-goals', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
 }
 
 export function fetchTransactions(month?: string): Promise<Transaction[]> {
@@ -151,4 +186,12 @@ export function deleteBudget(id: string): Promise<{ id: string; deleted: true }>
   return requestJson(`/budgets/${id}`, {
     method: 'DELETE',
   });
+}
+
+export function downloadTransactionsReport(month: string): Promise<DownloadReportResult> {
+  return requestBlob(`/reports/transactions.csv${buildQuery({ month })}`);
+}
+
+export function downloadSummaryReport(month: string): Promise<DownloadReportResult> {
+  return requestBlob(`/reports/summary.csv${buildQuery({ month })}`);
 }

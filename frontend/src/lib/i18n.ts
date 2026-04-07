@@ -2,6 +2,8 @@ export type Locale = 'en' | 'zh';
 
 export type TranslationKey =
   | 'nav.dashboard'
+  | 'nav.goals'
+  | 'nav.reports'
   | 'nav.transactions'
   | 'nav.categories'
   | 'nav.budgets'
@@ -18,6 +20,25 @@ export type TranslationKey =
   | 'dashboard.status'
   | 'dashboard.status.loading'
   | 'dashboard.status.ready'
+  | 'dashboard.goalSummary'
+  | 'dashboard.monthlyTarget'
+  | 'dashboard.currentSavings'
+  | 'dashboard.targetGap'
+  | 'dashboard.savingsRate'
+  | 'dashboard.projectedMonthEnd'
+  | 'dashboard.projectedSavingsRate'
+  | 'dashboard.goalStatus'
+  | 'dashboard.goalProgress'
+  | 'dashboard.targetReached'
+  | 'dashboard.actionNeeded'
+  | 'dashboard.monthEndSummary'
+  | 'dashboard.status.onTrack'
+  | 'dashboard.status.atRisk'
+  | 'dashboard.status.offTrack'
+  | 'dashboard.daysProgress'
+  | 'dashboard.saveGoal'
+  | 'dashboard.goalSaved'
+  | 'dashboard.goalSaveFailed'
   | 'dashboard.spendingHotspots'
   | 'dashboard.topCategories'
   | 'dashboard.noExpenseData'
@@ -97,12 +118,22 @@ export type TranslationKey =
   | 'locale.switch'
   | 'status.failedTransaction'
   | 'status.failedCategory'
-  | 'status.failedBudget';
+  | 'status.failedBudget'
+  | 'reports.title'
+  | 'reports.description'
+  | 'reports.transactions'
+  | 'reports.summary'
+  | 'reports.download'
+  | 'reports.ready'
+  | 'reports.failed'
+  | 'reports.hint'
 
 type Dict = Record<TranslationKey, string>;
 
 const en: Dict = {
   'nav.dashboard': 'Dashboard',
+  'nav.goals': 'Goals',
+  'nav.reports': 'Reports',
   'nav.transactions': 'Transactions',
   'nav.categories': 'Categories',
   'nav.budgets': 'Budgets',
@@ -120,6 +151,25 @@ const en: Dict = {
   'dashboard.status': 'Status',
   'dashboard.status.loading': 'Syncing with API...',
   'dashboard.status.ready': 'Live data loaded',
+  'dashboard.goalSummary': 'Goal summary',
+  'dashboard.monthlyTarget': 'Monthly savings target',
+  'dashboard.currentSavings': 'Current savings',
+  'dashboard.targetGap': 'Target gap',
+  'dashboard.savingsRate': 'Savings rate',
+  'dashboard.projectedMonthEnd': 'Projected month-end balance',
+  'dashboard.projectedSavingsRate': 'Projected savings rate',
+  'dashboard.goalStatus': 'Goal status',
+  'dashboard.goalProgress': 'Goal progress',
+  'dashboard.targetReached': 'Target reached',
+  'dashboard.actionNeeded': 'Action needed',
+  'dashboard.monthEndSummary': 'Month-end summary',
+  'dashboard.status.onTrack': 'On track',
+  'dashboard.status.atRisk': 'At risk',
+  'dashboard.status.offTrack': 'Off track',
+  'dashboard.daysProgress': 'Days progress',
+  'dashboard.saveGoal': 'Save monthly target',
+  'dashboard.goalSaved': 'Monthly goal saved.',
+  'dashboard.goalSaveFailed': 'Failed to save monthly goal',
   'dashboard.spendingHotspots': 'Spending hotspots',
   'dashboard.topCategories': 'Top expense categories',
   'dashboard.noExpenseData': 'No expense transactions for this month yet.',
@@ -200,10 +250,20 @@ const en: Dict = {
   'status.failedTransaction': 'Failed to save transaction',
   'status.failedCategory': 'Failed to save category',
   'status.failedBudget': 'Failed to save budget',
+  'reports.title': 'Reports',
+  'reports.description': 'Download Excel-friendly CSV files for your monthly records and financial summaries.',
+  'reports.transactions': 'Monthly transactions CSV',
+  'reports.summary': 'Monthly summary CSV',
+  'reports.download': 'Download',
+  'reports.ready': 'Report downloaded.',
+  'reports.failed': 'Failed to download report',
+  'reports.hint': 'Open the CSV directly in Excel to review, filter, and chart your own numbers.',
 };
 
 const zh: Dict = {
   'nav.dashboard': '總覽',
+  'nav.goals': '目標',
+  'nav.reports': '報表',
   'nav.transactions': '交易',
   'nav.categories': '分類',
   'nav.budgets': '預算',
@@ -220,6 +280,25 @@ const zh: Dict = {
   'dashboard.status': '狀態',
   'dashboard.status.loading': '正在同步資料...',
   'dashboard.status.ready': '資料已載入',
+  'dashboard.goalSummary': '目標總覽',
+  'dashboard.monthlyTarget': '每月儲蓄目標',
+  'dashboard.currentSavings': '目前儲蓄',
+  'dashboard.targetGap': '距離目標',
+  'dashboard.savingsRate': '儲蓄率',
+  'dashboard.projectedMonthEnd': '月底預測結餘',
+  'dashboard.projectedSavingsRate': '月底預測儲蓄率',
+  'dashboard.goalStatus': '目標狀態',
+  'dashboard.goalProgress': '目標進度',
+  'dashboard.targetReached': '已達標',
+  'dashboard.actionNeeded': '仍需努力',
+  'dashboard.monthEndSummary': '月底摘要',
+  'dashboard.status.onTrack': '達標中',
+  'dashboard.status.atRisk': '有風險',
+  'dashboard.status.offTrack': '偏離目標',
+  'dashboard.daysProgress': '月份進度',
+  'dashboard.saveGoal': '儲存每月目標',
+  'dashboard.goalSaved': '每月目標已儲存。',
+  'dashboard.goalSaveFailed': '每月目標儲存失敗',
   'dashboard.spendingHotspots': '支出熱點',
   'dashboard.topCategories': '主要支出分類',
   'dashboard.noExpenseData': '本月尚未有支出交易。',
@@ -300,6 +379,14 @@ const zh: Dict = {
   'status.failedTransaction': '交易儲存失敗',
   'status.failedCategory': '分類儲存失敗',
   'status.failedBudget': '預算儲存失敗',
+  'reports.title': '報表',
+  'reports.description': '下載 Excel 友善 CSV，方便檢視、篩選和整理你每月的理財資料。',
+  'reports.transactions': '每月交易明細 CSV',
+  'reports.summary': '每月摘要 CSV',
+  'reports.download': '下載',
+  'reports.ready': '報表已下載。',
+  'reports.failed': '報表下載失敗',
+  'reports.hint': '你可以直接用 Excel 開啟 CSV，再按自己的方式做篩選、統計和圖表。',
 };
 
 export const dictionaries: Record<Locale, Dict> = { en, zh };

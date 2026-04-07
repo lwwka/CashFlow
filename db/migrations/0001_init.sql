@@ -54,6 +54,16 @@ CREATE TABLE IF NOT EXISTS budgets (
   CONSTRAINT budgets_user_month_category_uniq UNIQUE NULLS NOT DISTINCT (user_id, month, category_id)
 );
 
+CREATE TABLE IF NOT EXISTS monthly_goals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  month CHAR(7) NOT NULL CHECK (month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
+  savings_target NUMERIC(12, 2) NOT NULL CHECK (savings_target >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT monthly_goals_user_month_uniq UNIQUE (user_id, month)
+);
+
 CREATE INDEX IF NOT EXISTS idx_transactions_user_date
   ON transactions(user_id, occurred_on DESC)
   WHERE deleted_at IS NULL;
@@ -64,5 +74,8 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user_type_category_date
 
 CREATE INDEX IF NOT EXISTS idx_budgets_user_month
   ON budgets(user_id, month);
+
+CREATE INDEX IF NOT EXISTS idx_monthly_goals_user_month
+  ON monthly_goals(user_id, month);
 
 COMMIT;

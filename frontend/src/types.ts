@@ -5,6 +5,17 @@ export interface Overview {
   balance: number;
 }
 
+export interface MonthlyGoal {
+  id: string;
+  month: string;
+  savingsTarget: number;
+}
+
+export interface DownloadReportResult {
+  blob: Blob;
+  filename: string;
+}
+
 export interface Category {
   id: string;
   name: string;

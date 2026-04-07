@@ -14,6 +14,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.monthlyGoal.deleteMany();
     await prisma.budget.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.category.deleteMany();
@@ -104,6 +105,17 @@ describe('CashFlow core flows (e2e)', () => {
     expect(budgetResponse.body.month).toBe('2026-04');
     expect(budgetResponse.body.amount).toBe(3000);
 
+    const monthlyGoalResponse = await request(app.getHttpServer())
+      .put('/api/v1/monthly-goals')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        month: '2026-04',
+        savingsTarget: 2500,
+      });
+
+    expect(monthlyGoalResponse.status).toBe(200);
+    expect(monthlyGoalResponse.body.savingsTarget).toBe(2500);
+
     const transactionsListResponse = await request(app.getHttpServer())
       .get('/api/v1/transactions?month=2026-04')
       .set('Authorization', `Bearer ${token}`);
@@ -128,6 +140,13 @@ describe('CashFlow core flows (e2e)', () => {
     expect(overviewResponse.body.totalIncome).toBe(0);
     expect(overviewResponse.body.totalExpense).toBe(120.5);
     expect(overviewResponse.body.balance).toBe(-120.5);
+
+    const monthlyGoalLookupResponse = await request(app.getHttpServer())
+      .get('/api/v1/monthly-goals?month=2026-04')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(monthlyGoalLookupResponse.status).toBe(200);
+    expect(monthlyGoalLookupResponse.body.savingsTarget).toBe(2500);
   });
 
   it('updates and deletes transactions inside an authenticated flow', async () => {

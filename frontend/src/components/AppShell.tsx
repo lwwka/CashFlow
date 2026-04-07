@@ -25,6 +25,8 @@ export function AppShell(props: AppShellProps): JSX.Element {
   ];
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
+    { to: '/goals', label: t('nav.goals') },
+    { to: '/reports', label: t('nav.reports') },
     { to: '/transactions', label: t('nav.transactions') },
     { to: '/categories', label: t('nav.categories') },
     { to: '/budgets', label: t('nav.budgets') },

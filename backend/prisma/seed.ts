@@ -21,6 +21,10 @@ const seedPayload = {
     { month: '2026-04', categoryName: 'Transport', amount: 1200 },
     { month: '2026-04', amount: 10000 },
   ],
+  monthlyGoal: {
+    month: '2026-04',
+    savingsTarget: 18000,
+  },
 };
 
 async function main(): Promise<void> {
@@ -73,6 +77,14 @@ async function main(): Promise<void> {
       month: budget.month,
       amount: budget.amount,
     })),
+  });
+
+  await prisma.monthlyGoal.create({
+    data: {
+      userId: user.id,
+      month: seedPayload.monthlyGoal.month,
+      savingsTarget: seedPayload.monthlyGoal.savingsTarget,
+    },
   });
 
   console.log(`Seed completed for ${seedPayload.userEmail} with password ${seedPayload.password}`);

@@ -20,6 +20,7 @@ model User {
   updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   budgets      Budget[]
   categories   Category[]
+  monthlyGoals MonthlyGoal[]
   transactions Transaction[]
 
   @@map("users")
@@ -71,6 +72,20 @@ model Budget {
   @@unique([userId, month, categoryId], map: "budgets_user_month_category_uniq")
   @@index([userId, month], map: "idx_budgets_user_month")
   @@map("budgets")
+}
+
+model MonthlyGoal {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  month         String   @db.Char(7)
+  savingsTarget Decimal  @map("savings_target") @db.Decimal(12, 2)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, month], map: "monthly_goals_user_month_uniq")
+  @@index([userId, month], map: "idx_monthly_goals_user_month")
+  @@map("monthly_goals")
 }
 
 enum transaction_type {
