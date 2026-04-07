@@ -17,6 +17,7 @@ export function AppShell(props: AppShellProps): JSX.Element {
   const navigate = useNavigate();
   const { logout, profile } = useAuth();
   const { locale, setLocale, theme, setTheme, t } = usePreferences();
+  const showDebugInfo = import.meta.env.DEV;
   const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
   const appGitSha = typeof __APP_GIT_SHA__ !== 'undefined' ? __APP_GIT_SHA__ : 'local';
   const appBuildDate =
@@ -29,17 +30,24 @@ export function AppShell(props: AppShellProps): JSX.Element {
     { to: '/transactions', label: t('nav.transactions') },
     { to: '/goals', label: t('nav.goals') },
   ];
-  const showFilters = ['/transactions', '/goals', '/categories', '/budgets'].includes(location.pathname);
+  const showFilters = ['/transactions', '/goals'].includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-hero-glow px-4 py-6 text-white sm:px-6 lg:px-10">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[252px_minmax(0,1fr)]">
-        <aside className="glass-panel h-fit overflow-hidden lg:sticky lg:top-6">
+        <aside
+          className="glass-panel h-fit overflow-hidden lg:sticky lg:top-6"
+          style={{
+            background:
+              theme === 'light'
+                ? 'linear-gradient(180deg, rgba(255, 252, 245, 0.96) 0%, rgba(250, 245, 236, 0.98) 100%)'
+                : 'linear-gradient(180deg, rgba(14, 23, 34, 0.94) 0%, rgba(11, 19, 29, 0.97) 100%)',
+          }}
+        >
           <div className="border-b border-white/10 px-5 py-5">
             <p className="text-[11px] uppercase tracking-[0.35em] text-reef">CashFlow</p>
             <h1 className="mt-3 text-3xl leading-none">{t('shell.title')}</h1>
-            <p className="mt-3 text-sm leading-6 text-white/55">Track spending, stay on target, and keep the daily flow simple.</p>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Signed in as 已登入身份</p>
               <p className="mt-2 text-sm text-sand">{profile?.email ?? '-'}</p>
             </div>
@@ -55,7 +63,9 @@ export function AppShell(props: AppShellProps): JSX.Element {
                   className={({ isActive }) =>
                     [
                       'block rounded-2xl px-4 py-2.5 text-sm font-medium transition',
-                      isActive ? 'bg-reef/15 text-reef' : 'text-white/70 hover:bg-white/5 hover:text-white',
+                      isActive
+                        ? 'border border-white/10 bg-white/5 text-reef shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
+                        : 'text-white/70 hover:bg-white/5 hover:text-white',
                     ].join(' ')
                   }
                 >
@@ -82,29 +92,34 @@ export function AppShell(props: AppShellProps): JSX.Element {
                       onChange={(event) => props.onMonthChange(event.target.value)}
                     />
                   </label>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                    <label className="field">
-                      <span className="field-label">{t('shell.fromDate')}</span>
-                      <input
-                        className="text-input"
-                        type="date"
-                        value={props.fromDate}
-                        onChange={(event) => props.onFromDateChange(event.target.value)}
-                      />
-                    </label>
-                    <label className="field">
-                      <span className="field-label">{t('shell.toDate')}</span>
-                      <input
-                        className="text-input"
-                        type="date"
-                        value={props.toDate}
-                        onChange={(event) => props.onToDateChange(event.target.value)}
-                      />
-                    </label>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/15 px-3 py-3 text-[11px] leading-5 text-white/55">
-                    {props.fromDate && props.toDate ? t('shell.rangeModeCustom') : t('shell.rangeModeMonth')}
-                  </div>
+                  <details className="rounded-2xl border border-white/10 bg-black/15 px-3 py-3">
+                    <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                      Advanced range 進階時間範圍
+                    </summary>
+                    <div className="mt-3 grid gap-3">
+                      <label className="field">
+                        <span className="field-label">{t('shell.fromDate')}</span>
+                        <input
+                          className="text-input"
+                          type="date"
+                          value={props.fromDate}
+                          onChange={(event) => props.onFromDateChange(event.target.value)}
+                        />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">{t('shell.toDate')}</span>
+                        <input
+                          className="text-input"
+                          type="date"
+                          value={props.toDate}
+                          onChange={(event) => props.onToDateChange(event.target.value)}
+                        />
+                      </label>
+                      <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-[11px] leading-5 text-white/55">
+                        {props.fromDate && props.toDate ? t('shell.rangeModeCustom') : t('shell.rangeModeMonth')}
+                      </div>
+                    </div>
+                  </details>
                   {props.fromDate || props.toDate ? (
                     <button
                       className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/85 transition hover:bg-white/10"
@@ -138,18 +153,20 @@ export function AppShell(props: AppShellProps): JSX.Element {
                   </select>
                 </label>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Build</p>
-                <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                  <span className="rounded-full border border-reef/20 bg-reef/10 px-2.5 py-1 font-semibold text-reef">
-                    v{appVersion}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
-                    {appGitSha}
-                  </span>
+              {showDebugInfo ? (
+                <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">Build</p>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+                    <span className="rounded-full border border-reef/20 bg-reef/10 px-2.5 py-1 font-semibold text-reef">
+                      v{appVersion}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/60">
+                      {appGitSha}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-[11px] leading-5 text-white/45">{formattedBuildDate}</p>
                 </div>
-                <p className="mt-3 text-[11px] leading-5 text-white/45">{formattedBuildDate}</p>
-              </div>
+              ) : null}
               <button
                 className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                 onClick={() => {

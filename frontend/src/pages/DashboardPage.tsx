@@ -2,11 +2,10 @@ import { Link, useOutletContext } from 'react-router-dom';
 
 import { MetricCard } from '../components/MetricCard';
 import { Panel } from '../components/Panel';
-import { useBudgets } from '../hooks/useBudgets';
 import { useOverview } from '../hooks/useOverview';
 import { useTransactions } from '../hooks/useTransactions';
 import { usePreferences } from '../providers/PreferencesProvider';
-import type { Budget, Transaction } from '../types';
+import type { Transaction } from '../types';
 
 interface ShellContext {
   month: string;
@@ -22,58 +21,29 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function buildTopExpenseCategories(transactions: Transaction[]): Array<{ name: string; amount: number }> {
-  const totals = new Map<string, number>();
-
-  for (const transaction of transactions) {
-    if (transaction.type !== 'expense') {
-      continue;
-    }
-
-    const key = transaction.categoryName || 'Uncategorized';
-    totals.set(key, (totals.get(key) ?? 0) + transaction.amount);
-  }
-
-  return [...totals.entries()]
-    .map(([name, amount]) => ({ name, amount }))
-    .sort((left, right) => right.amount - left.amount)
-    .slice(0, 4);
-}
-
-function buildBudgetComparison(
-  budgets: Budget[],
-  transactions: Transaction[],
-): Array<{ id: string; name: string; budget: number; actual: number; remaining: number }> {
-  return budgets
-    .filter((budget) => Boolean(budget.categoryId))
-    .map((budget) => {
-      const actual = transactions
-        .filter((transaction) => transaction.type === 'expense' && transaction.categoryId === budget.categoryId)
-        .reduce((sum, transaction) => sum + transaction.amount, 0);
-
-      return {
-        id: budget.id,
-        name: budget.categoryName || 'Uncategorized',
-        budget: budget.amount,
-        actual,
-        remaining: budget.amount - actual,
-      };
-    })
-    .sort((left, right) => left.remaining - right.remaining);
-}
-
 export function DashboardPage(): JSX.Element {
   const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const hasCustomRange = Boolean(fromDate && toDate);
   const filter = hasCustomRange ? { from: fromDate, to: toDate } : { month };
   const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(filter);
   const { transactions, isLoading: isTransactionsLoading, error: transactionsError } = useTransactions(filter);
-  const { budgets, isLoading: isBudgetsLoading, error: budgetsError } = useBudgets(month);
   const { t } = usePreferences();
-  const isLoading = isOverviewLoading || isTransactionsLoading || isBudgetsLoading;
-  const error = overviewError ?? transactionsError ?? budgetsError;
-  const topExpenseCategories = buildTopExpenseCategories(transactions);
-  const budgetComparison = buildBudgetComparison(budgets, transactions);
+  const isLoading = isOverviewLoading || isTransactionsLoading;
+  const error = overviewError ?? transactionsError;
+  const currentBalance = overview?.balance ?? 0;
+
+  const nextStepLink = transactions.length === 0 ? '/transactions' : '/goals';
+  const nextStepLabel = transactions.length === 0 ? t('dashboard.openTransactionsQuick') : t('dashboard.openGoalsQuick');
+  const expenseItems = transactions.filter((item) => item.type === 'expense');
+  const expenseRatio =
+    (overview?.totalIncome ?? 0) > 0 ? (overview?.totalExpense ?? 0) / (overview?.totalIncome ?? 0) : 0;
+  const isSpendingHeavy = (overview?.totalIncome ?? 0) > 0 && expenseRatio > 0.8;
+  const budgetMessage =
+    expenseItems.length === 0
+      ? t('dashboard.budgetSafe')
+      : isSpendingHeavy
+        ? t('dashboard.budgetRisk').replace('{count}', String(expenseItems.length))
+        : t('dashboard.budgetSafe');
 
   return (
     <>
@@ -82,7 +52,6 @@ export function DashboardPage(): JSX.Element {
           <div>
             <p className="text-xs uppercase tracking-[0.32em] text-reef">{t('dashboard.eyebrow')}</p>
             <h2 className="mt-4 text-5xl leading-none">{t('dashboard.title')}</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">{t('dashboard.description')}</p>
           </div>
         </div>
       </section>
@@ -104,56 +73,54 @@ export function DashboardPage(): JSX.Element {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <Panel title={t('dashboard.quickStart')} eyebrow={t('dashboard.startHere')}>
-          <div className="space-y-3">
+        <Panel title={t('dashboard.alerts')} eyebrow={month}>
+          <div className="grid gap-3 lg:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">{t('dashboard.stepCategories')}</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepCategoriesHint')}</p>
-              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/categories">
-                {t('dashboard.openCategories')}
-              </Link>
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">本月支出狀態</p>
+              <p className={`mt-3 text-xl font-semibold leading-tight sm:text-2xl ${isSpendingHeavy ? 'text-coral' : 'text-reef'}`}>
+                {(expenseRatio * 100).toFixed(0)}%
+              </p>
+              <p className="mt-2 text-sm leading-7 text-white/60">
+                {isSpendingHeavy ? '你這個月已經用了大部分收入。' : '目前支出仍在可控範圍。'}
+              </p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-white/45">
+                {budgetMessage}
+              </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">{t('dashboard.stepTransactions')}</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepTransactionsHint')}</p>
-              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/transactions">
-                {t('dashboard.openTransactions')}
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.nextStep')}</p>
+              <p className="mt-3 text-base font-semibold leading-tight text-white sm:text-lg">{nextStepLabel}</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to={nextStepLink}>
+                {transactions.length === 0 ? t('dashboard.openTransactions') : t('dashboard.openGoals')}
               </Link>
             </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                <p className="text-sm font-medium text-white">{t('dashboard.stepGoals')}</p>
-                <p className="mt-2 text-sm leading-7 text-white/60">{t('dashboard.stepGoalsHint')}</p>
-                <div className="mt-3 flex flex-wrap gap-4">
-                  <Link className="inline-flex text-sm font-semibold text-reef" to="/goals">
-                    {t('dashboard.openGoals')}
-                  </Link>
-                </div>
-              </div>
           </div>
         </Panel>
 
-        <Panel title={t('dashboard.summaryGuide')} eyebrow={t('dashboard.whatThisPageMeans')}>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.income')}</p>
-              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.incomeHint')}</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.expense')}</p>
-              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.expenseHint')}</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('metric.balance')}</p>
-              <p className="mt-3 text-sm leading-7 text-white/65">{t('dashboard.balanceHint')}</p>
-            </div>
+        <Panel title="常用動作" eyebrow="直接開始">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Link
+              className="rounded-2xl border border-white/10 bg-black/15 px-4 py-5 transition hover:bg-white/5"
+              to="/transactions"
+            >
+              <p className="text-sm font-medium text-white">記一筆收入或支出</p>
+              <p className="mt-3 inline-flex text-sm font-semibold text-reef">{t('dashboard.openTransactions')}</p>
+            </Link>
+            <Link
+              className="rounded-2xl border border-white/10 bg-black/15 px-4 py-5 transition hover:bg-white/5"
+              to="/goals"
+            >
+              <p className="text-sm font-medium text-white">看今個月是否達標</p>
+              <p className="mt-3 inline-flex text-sm font-semibold text-sand">{t('dashboard.openGoals')}</p>
+            </Link>
           </div>
         </Panel>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-6">
         <Panel title={t('transactions.recent')} eyebrow={t('transactions.timeline')}>
           <div className="space-y-3">
-            {transactions.slice(0, 5).map((item) => (
+            {transactions.slice(0, 3).map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                 <div>
                   <p className="font-medium text-white">{item.note || item.categoryName || item.type}</p>
@@ -165,75 +132,6 @@ export function DashboardPage(): JSX.Element {
               </div>
             ))}
             {transactions.length === 0 ? <p className="text-sm text-white/55">{t('transactions.empty')}</p> : null}
-          </div>
-        </Panel>
-
-        <Panel title={t('budgets.lanes')} eyebrow={t('budgets.planning')}>
-          <div className="space-y-3">
-            {budgets.map((budget) => (
-              <div key={budget.id} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-white">{budget.categoryName || t('budgets.wholeMonth')}</p>
-                  <p className="text-sand">{formatCurrency(budget.amount)}</p>
-                </div>
-              </div>
-            ))}
-            {budgets.length === 0 ? <p className="text-sm text-white/55">{t('budgets.empty')}</p> : null}
-          </div>
-        </Panel>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <Panel title={t('dashboard.topCategories')} eyebrow={t('dashboard.spendingHotspots')}>
-          <div className="space-y-3">
-            {topExpenseCategories.map((item, index) => (
-              <div key={item.name} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/40">#{index + 1}</p>
-                    <p className="mt-2 font-medium text-white">{item.name}</p>
-                  </div>
-                  <p className="text-coral">{formatCurrency(item.amount)}</p>
-                </div>
-              </div>
-            ))}
-            {topExpenseCategories.length === 0 ? <p className="text-sm text-white/55">{t('dashboard.noExpenseData')}</p> : null}
-          </div>
-        </Panel>
-
-        <Panel title={t('dashboard.budgetVsActual')} eyebrow={t('dashboard.budgetPulse')}>
-          <div className="space-y-3">
-            {budgetComparison.map((item) => {
-              const percent = item.budget > 0 ? Math.min((item.actual / item.budget) * 100, 100) : 0;
-              const isOverBudget = item.remaining < 0;
-
-              return (
-                <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium text-white">{item.name}</p>
-                    <p className="text-sand">{formatCurrency(item.budget)}</p>
-                  </div>
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className={isOverBudget ? 'h-full rounded-full bg-coral' : 'h-full rounded-full bg-reef'}
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-                    <p className="text-white/60">
-                      {t('dashboard.actualSpend')}: <span className="text-white">{formatCurrency(item.actual)}</span>
-                    </p>
-                    <p className={isOverBudget ? 'text-coral' : 'text-white/60'}>
-                      {isOverBudget ? t('dashboard.overBudget') : t('dashboard.remaining')}:{' '}
-                      <span className={isOverBudget ? 'text-coral' : 'text-white'}>
-                        {formatCurrency(Math.abs(item.remaining))}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-            {budgetComparison.length === 0 ? <p className="text-sm text-white/55">{t('dashboard.noBudgetData')}</p> : null}
           </div>
         </Panel>
       </section>

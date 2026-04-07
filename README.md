@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/lwwka/CashFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/lwwka/CashFlow/actions/workflows/ci.yml)
 
-MVP scaffold for a monthly income/expense tracking tool.
+CashFlow is a full-stack personal finance application designed to help users move from simple expense tracking to clearer monthly money decisions. Instead of only recording transactions, the product brings together cash flow visibility, monthly savings targets, budget control, import and export workflows, and longer-term financial progress in one place.
+
+Built with React, Vite, NestJS, Prisma, and PostgreSQL, CashFlow includes authentication, transaction and category management, budgeting, monthly and long-term goals, CSV-based import and export, reporting, CI, and production deployment on Vercel and Railway. A major focus of the project was learning how to evolve a system from feature completeness into a more usable product by simplifying flows, reducing cognitive load, and prioritizing the most important user actions.
 
 ## Project Structure
 

@@ -212,9 +212,6 @@ export function GoalsPage(): JSX.Element {
           <div>
             <p className="text-xs uppercase tracking-[0.32em] text-reef">{t('nav.goals')}</p>
             <h2 className="mt-4 text-5xl leading-none">本月目標與長期方向</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">
-              Keep money goals in one place: this month&apos;s target, your longer-term savings progress, and the trend that shows whether your current pace is healthy.
-            </p>
             {hasCustomRange ? (
               <p className="mt-4 text-sm leading-7 text-sand">{t('shell.goalsRangeHint')}</p>
             ) : null}
@@ -251,11 +248,9 @@ export function GoalsPage(): JSX.Element {
       <section className="grid gap-3 md:grid-cols-2">
         <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-5">
           <p className="text-sm font-medium text-white">Monthly focus 本月重點</p>
-          <p className="mt-2 text-sm leading-7 text-white/60">Use the top cards and monthly target form to decide whether this month is still on track.</p>
         </div>
         <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-5">
           <p className="text-sm font-medium text-white">Long-term direction 長期方向</p>
-          <p className="mt-2 text-sm leading-7 text-white/60">Use the lower half of this page when you want to zoom out and see whether your overall savings direction is healthy.</p>
         </div>
       </section>
 
@@ -345,42 +340,6 @@ export function GoalsPage(): JSX.Element {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <Panel title={t('dashboard.cashFlowTrend')} eyebrow="Long-term direction 長期方向">
-          {trendSeries.length > 0 ? (
-            <div className="space-y-5">
-              <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-                <svg className="h-[140px] w-full" viewBox="0 0 320 120" preserveAspectRatio="none" role="img">
-                  <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
-                  <polyline
-                    fill="none"
-                    stroke="rgb(72 225 207)"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={trendPolyline}
-                  />
-                </svg>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.bestDay')}</p>
-                  <p className="mt-3 text-lg text-reef">
-                    {bestTrendPoint ? `${bestTrendPoint.label} · ${formatCurrency(bestTrendPoint.net)}` : '-'}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.worstDay')}</p>
-                  <p className="mt-3 text-lg text-coral">
-                    {worstTrendPoint ? `${worstTrendPoint.label} · ${formatCurrency(worstTrendPoint.net)}` : '-'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-white/55">{t('dashboard.noTrendData')}</p>
-          )}
-        </Panel>
-
         <Panel title={t('dashboard.longTermGoal')} eyebrow={t('dashboard.wealthTrack')}>
           <form className="space-y-4" onSubmit={(event) => void handleFinancialGoalSave(event)}>
             <label className="field">
@@ -451,6 +410,48 @@ export function GoalsPage(): JSX.Element {
             ) : null}
           </div>
         </Panel>
+
+        <details className="rounded-[28px] border border-white/10 bg-[#132736]/80 px-5 py-5">
+          <summary className="cursor-pointer list-none text-base font-semibold text-white">
+            {t('dashboard.cashFlowTrend')}
+            <span className="ml-3 text-sm font-normal text-white/45">Open only when you want a deeper read</span>
+          </summary>
+          <div className="mt-4">
+            {trendSeries.length > 0 ? (
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                  <svg className="h-[140px] w-full" viewBox="0 0 320 120" preserveAspectRatio="none" role="img">
+                    <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+                    <polyline
+                      fill="none"
+                      stroke="rgb(72 225 207)"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      points={trendPolyline}
+                    />
+                  </svg>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.bestDay')}</p>
+                    <p className="mt-3 text-lg text-reef">
+                      {bestTrendPoint ? `${bestTrendPoint.label} · ${formatCurrency(bestTrendPoint.net)}` : '-'}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.worstDay')}</p>
+                    <p className="mt-3 text-lg text-coral">
+                      {worstTrendPoint ? `${worstTrendPoint.label} · ${formatCurrency(worstTrendPoint.net)}` : '-'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-white/55">{t('dashboard.noTrendData')}</p>
+            )}
+          </div>
+        </details>
       </section>
     </>
   );

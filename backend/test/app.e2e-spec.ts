@@ -1,4 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
 import * as request from 'supertest';
 
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -7,24 +9,54 @@ import { createTestApp } from './create-test-app';
 describe('CashFlow core flows (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let jwtService: JwtService;
 
   beforeAll(async () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
+    jwtService = app.get(JwtService);
   });
 
   beforeEach(async () => {
-    await prisma.financialGoal.deleteMany();
-    await prisma.monthlyGoal.deleteMany();
-    await prisma.budget.deleteMany();
-    await prisma.transaction.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.$executeRawUnsafe(`
+      TRUNCATE TABLE
+        financial_goals,
+        monthly_goals,
+        budgets,
+        transactions,
+        categories,
+        users
+      RESTART IDENTITY CASCADE
+    `);
   });
 
   afterAll(async () => {
     await app.close();
   });
+
+  async function createAuthenticatedUser(email: string): Promise<{ token: string; userId: string }> {
+    const passwordHash = await bcrypt.hash('StrongPassword123', 4);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    const token = await jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+    });
+
+    return {
+      token,
+      userId: user.id,
+    };
+  }
 
   it('registers, authenticates, and returns the current user profile', async () => {
     const registerResponse = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
@@ -60,12 +92,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   it('runs the authenticated category -> transaction -> budget -> overview flow', async () => {
-    const registerResponse = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      email: 'e2e-flow@cashflow.local',
-      password: 'StrongPassword123',
-    });
-
-    const token = registerResponse.body.accessToken as string;
+    const { token } = await createAuthenticatedUser('e2e-flow@cashflow.local');
 
     const categoryResponse = await request(app.getHttpServer())
       .post('/api/v1/categories')
@@ -169,12 +196,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   it('updates and deletes transactions inside an authenticated flow', async () => {
-    const registerResponse = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      email: 'e2e-transaction-edit@cashflow.local',
-      password: 'StrongPassword123',
-    });
-
-    const token = registerResponse.body.accessToken as string;
+    const { token } = await createAuthenticatedUser('e2e-transaction-edit@cashflow.local');
 
     const categoryResponse = await request(app.getHttpServer())
       .post('/api/v1/categories')
@@ -223,12 +245,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   it('updates and deletes categories inside an authenticated flow', async () => {
-    const registerResponse = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      email: 'e2e-category-edit@cashflow.local',
-      password: 'StrongPassword123',
-    });
-
-    const token = registerResponse.body.accessToken as string;
+    const { token } = await createAuthenticatedUser('e2e-category-edit@cashflow.local');
 
     const categoryResponse = await request(app.getHttpServer())
       .post('/api/v1/categories')
@@ -264,12 +281,7 @@ describe('CashFlow core flows (e2e)', () => {
   });
 
   it('updates and deletes budgets inside an authenticated flow', async () => {
-    const registerResponse = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
-      email: 'e2e-budget-edit@cashflow.local',
-      password: 'StrongPassword123',
-    });
-
-    const token = registerResponse.body.accessToken as string;
+    const { token } = await createAuthenticatedUser('e2e-budget-edit@cashflow.local');
 
     const categoryResponse = await request(app.getHttpServer())
       .post('/api/v1/categories')

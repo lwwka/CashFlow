@@ -16,6 +16,16 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private getPasswordHashRounds(): number {
+    const parsed = Number(process.env.BCRYPT_ROUNDS ?? '12');
+
+    if (!Number.isFinite(parsed) || parsed < 4) {
+      return 12;
+    }
+
+    return Math.floor(parsed);
+  }
+
   async register(input: { email: string; password: string }): Promise<{ accessToken: string; user: { id: string; email: string } }> {
     const existing = await this.prisma.user.findUnique({
       where: { email: input.email },
@@ -26,7 +36,7 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    const passwordHash = await bcrypt.hash(input.password, 12);
+    const passwordHash = await bcrypt.hash(input.password, this.getPasswordHashRounds());
     const user = await this.prisma.user.create({
       data: {
         email: input.email,

@@ -194,9 +194,25 @@ export function TransactionsPage(): JSX.Element {
   const [skippedImportRows, setSkippedImportRows] = useState<ImportTransactionRow[]>([]);
   const [reportStatus, setReportStatus] = useState('');
   const [activeReport, setActiveReport] = useState<ReportKind | null>(null);
+  const [incomeQuickForm, setIncomeQuickForm] = useState({
+    amount: '',
+    occurredOn: `${month}-01`,
+    note: 'Monthly income',
+  });
+  const [expenseQuickForm, setExpenseQuickForm] = useState({
+    amount: '',
+    occurredOn: `${month}-01`,
+    note: '',
+    categoryId: '',
+  });
+  const [incomeQuickStatus, setIncomeQuickStatus] = useState('');
+  const [expenseQuickStatus, setExpenseQuickStatus] = useState('');
   const availableCategories = categories.filter((category) => category.type === form.type);
+  const expenseCategories = categories.filter((category) => category.type === 'expense');
   const isAmountValid = Number(form.amount) > 0;
   const isFormValid = isAmountValid && Boolean(form.occurredOn);
+  const isIncomeQuickValid = Number(incomeQuickForm.amount) > 0 && Boolean(incomeQuickForm.occurredOn);
+  const isExpenseQuickValid = Number(expenseQuickForm.amount) > 0 && Boolean(expenseQuickForm.occurredOn);
   const importPreview = parseImportRows(importCsv);
   const parsedImportRows = importPreview.validRows;
   const invalidImportRows = importPreview.invalidRows;
@@ -219,6 +235,23 @@ export function TransactionsPage(): JSX.Element {
       occurredOn: `${month}-01`,
       categoryId: '',
       note: '',
+    });
+  }
+
+  function resetIncomeQuickForm(): void {
+    setIncomeQuickForm({
+      amount: '',
+      occurredOn: `${month}-01`,
+      note: 'Monthly income',
+    });
+  }
+
+  function resetExpenseQuickForm(): void {
+    setExpenseQuickForm({
+      amount: '',
+      occurredOn: `${month}-01`,
+      note: '',
+      categoryId: '',
     });
   }
 
@@ -270,6 +303,47 @@ export function TransactionsPage(): JSX.Element {
 
   async function handleDelete(id: string): Promise<void> {
     await remove(id);
+  }
+
+  async function handleQuickIncomeSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!isIncomeQuickValid) {
+      return;
+    }
+
+    const incomeCategory = categories.find((category) => category.type === 'income');
+    const didCreate = await create({
+      type: 'income',
+      amount: Number(incomeQuickForm.amount),
+      occurredOn: incomeQuickForm.occurredOn,
+      categoryId: incomeCategory?.id,
+      note: incomeQuickForm.note || 'Monthly income',
+    });
+
+    if (didCreate) {
+      setIncomeQuickStatus('Monthly income saved. 每月收入已儲存。');
+      resetIncomeQuickForm();
+    }
+  }
+
+  async function handleQuickExpenseSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!isExpenseQuickValid) {
+      return;
+    }
+
+    const didCreate = await create({
+      type: 'expense',
+      amount: Number(expenseQuickForm.amount),
+      occurredOn: expenseQuickForm.occurredOn,
+      categoryId: expenseQuickForm.categoryId || undefined,
+      note: expenseQuickForm.note || undefined,
+    });
+
+    if (didCreate) {
+      setExpenseQuickStatus('Expense saved. 支出已儲存。');
+      resetExpenseQuickForm();
+    }
   }
 
   async function handleImport(): Promise<void> {
@@ -364,15 +438,13 @@ export function TransactionsPage(): JSX.Element {
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <div className="space-y-6">
-        <Panel title="Daily money actions 每日操作" eyebrow={hasCustomRange ? `${fromDate} → ${toDate}` : month}>
+        <Panel title="What do you want to add today? 今天想先記哪一筆？" eyebrow={hasCustomRange ? `${fromDate} → ${toDate}` : month}>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">Add today&apos;s transaction</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">Use the form below for normal day-to-day logging. It is the fastest path if you only need to add one or two records.</p>
+              <p className="text-sm font-medium text-white">Most people start here</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-              <p className="text-sm font-medium text-white">Need setup first?</p>
-              <p className="mt-2 text-sm leading-7 text-white/60">If your category selector feels empty, open the helper pages first and come back here.</p>
+              <p className="text-sm font-medium text-white">Need a label first?</p>
               <div className="mt-3 flex flex-wrap gap-4">
                 <Link className="inline-flex text-sm font-semibold text-reef" to="/categories">
                   {t('nav.categories')}
@@ -385,8 +457,117 @@ export function TransactionsPage(): JSX.Element {
           </div>
         </Panel>
 
-        <Panel title={editingTransactionId ? t('transactions.edit') : t('transactions.create')} eyebrow={t('transactions.writeDb')}>
-          <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+        <Panel title="Monthly income 每月收入" eyebrow="Fast entry 快速輸入">
+          <div className="space-y-4">
+            <form className="space-y-4" onSubmit={(event) => void handleQuickIncomeSubmit(event)}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="field">
+                  <span className="field-label">{t('transactions.amount')}</span>
+                  <input
+                    className="text-input"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={incomeQuickForm.amount}
+                    onChange={(event) => setIncomeQuickForm((current) => ({ ...current, amount: event.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">{t('transactions.occurredOn')}</span>
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={incomeQuickForm.occurredOn}
+                    onChange={(event) => setIncomeQuickForm((current) => ({ ...current, occurredOn: event.target.value }))}
+                  />
+                </label>
+              </div>
+              <label className="field">
+                <span className="field-label">{t('transactions.note')}</span>
+                <input
+                  className="text-input"
+                  value={incomeQuickForm.note}
+                  onChange={(event) => setIncomeQuickForm((current) => ({ ...current, note: event.target.value }))}
+                  placeholder="Salary, freelance, allowance..."
+                />
+              </label>
+              <button className="primary-button w-full" disabled={isSaving || !isIncomeQuickValid} type="submit">
+                Save income 記下這筆收入
+              </button>
+              {incomeQuickStatus ? <p className="text-sm text-white/70">{incomeQuickStatus}</p> : null}
+            </form>
+          </div>
+        </Panel>
+
+        <Panel title="Quick expense 快速記支出" eyebrow="Daily spending 每日支出">
+          <div className="space-y-4">
+            <form className="space-y-4" onSubmit={(event) => void handleQuickExpenseSubmit(event)}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="field">
+                  <span className="field-label">{t('transactions.amount')}</span>
+                  <input
+                    className="text-input"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={expenseQuickForm.amount}
+                    onChange={(event) => setExpenseQuickForm((current) => ({ ...current, amount: event.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">{t('transactions.occurredOn')}</span>
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={expenseQuickForm.occurredOn}
+                    onChange={(event) => setExpenseQuickForm((current) => ({ ...current, occurredOn: event.target.value }))}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="field">
+                  <span className="field-label">{t('transactions.category')}</span>
+                  <select
+                    className="text-input"
+                    value={expenseQuickForm.categoryId}
+                    onChange={(event) => setExpenseQuickForm((current) => ({ ...current, categoryId: event.target.value }))}
+                  >
+                    <option value="">{t('transactions.uncategorized')}</option>
+                    {expenseCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field-label">{t('transactions.note')}</span>
+                  <input
+                    className="text-input"
+                    value={expenseQuickForm.note}
+                    onChange={(event) => setExpenseQuickForm((current) => ({ ...current, note: event.target.value }))}
+                    placeholder="Coffee, taxi, groceries..."
+                  />
+                </label>
+              </div>
+              <button className="primary-button w-full" disabled={isSaving || !isExpenseQuickValid} type="submit">
+                Save expense 記下這筆支出
+              </button>
+              {expenseQuickStatus ? <p className="text-sm text-white/70">{expenseQuickStatus}</p> : null}
+            </form>
+          </div>
+        </Panel>
+
+        <details className="rounded-[28px] border border-white/10 bg-[#132736]/80 px-5 py-5">
+          <summary className="cursor-pointer list-none text-base font-semibold text-white">
+            More tools 更多工具
+            <span className="ml-3 text-sm font-normal text-white/45">Import, export, setup, and advanced entry</span>
+          </summary>
+          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+              Advanced transaction form 進階交易表單
+            </summary>
+            <form className="mt-4 space-y-4" onSubmit={(event) => void handleSubmit(event)}>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="field">
                 <span className="field-label">{t('transactions.type')}</span>
@@ -467,11 +648,14 @@ export function TransactionsPage(): JSX.Element {
             </div>
             {status ? <p className="text-sm text-white/70">{status}</p> : null}
             {error ? <p className="text-sm text-coral">{error}</p> : null}
-          </form>
-        </Panel>
+            </form>
+          </details>
 
-        <Panel title={t('transactions.import')} eyebrow="Batch import 批量匯入">
-          <div className="space-y-4">
+          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+              {t('transactions.import')}
+            </summary>
+            <div className="mt-4 space-y-4">
             <p className="text-sm leading-7 text-white/65">{t('transactions.importDescription')}</p>
             <p className="text-xs leading-6 text-white/45">{t('transactions.importFormat')}</p>
             <p className="text-xs leading-6 text-white/45">{t('transactions.importPasteHint')}</p>
@@ -575,11 +759,14 @@ export function TransactionsPage(): JSX.Element {
                 ) : null}
               </div>
             ) : null}
-          </div>
-        </Panel>
+            </div>
+          </details>
 
-        <Panel title={t('reports.title')} eyebrow="Take data out 匯出資料">
-          <div className="space-y-4">
+          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+              {t('reports.title')}
+            </summary>
+            <div className="mt-4 space-y-4">
             <p className="text-sm leading-7 text-white/65">
               Download your data from the same place where you add and import transactions, so exporting stays simple.
             </p>
@@ -600,14 +787,37 @@ export function TransactionsPage(): JSX.Element {
               {activeReport === 'summary' ? 'Downloading...' : `${t('reports.summary')} CSV`}
             </button>
             {reportStatus ? <p className="text-sm text-white/70">{reportStatus}</p> : null}
-          </div>
-        </Panel>
+            </div>
+          </details>
+
+          <details className="mt-4 rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-white">
+              Setup tools 設定工具
+            </summary>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">{t('nav.categories')}</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">Create a few clean labels first if your transactions need clearer grouping.</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold text-reef" to="/categories">
+                Open categories
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+              <p className="text-sm font-medium text-white">{t('nav.budgets')}</p>
+              <p className="mt-2 text-sm leading-7 text-white/60">Only use budgets if you want stricter monthly control. It is not required to start using the app.</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold text-sand" to="/budgets">
+                Open budgets
+              </Link>
+            </div>
+            </div>
+          </details>
+        </details>
       </div>
 
       <Panel title={t('transactions.list')} eyebrow={hasCustomRange ? `${fromDate} → ${toDate}` : month}>
         {isLoading ? <p className="text-sm text-white/55">{t('common.loading')}</p> : null}
         <div className="space-y-3">
-          {transactions.map((item) => (
+          {transactions.slice(0, 10).map((item) => (
             <article key={item.id} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -632,6 +842,11 @@ export function TransactionsPage(): JSX.Element {
               </div>
             </article>
           ))}
+          {transactions.length > 10 ? (
+            <p className="text-sm text-white/55">
+              Showing the latest 10 items. Use the date filter when you want to focus on another period.
+            </p>
+          ) : null}
           {transactions.length === 0 && !isLoading ? <p className="text-sm text-white/55">{t('transactions.empty')}</p> : null}
         </div>
       </Panel>
