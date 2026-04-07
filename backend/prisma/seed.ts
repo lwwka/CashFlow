@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 const seedPayload = {
   userEmail: 'demo@cashflow.local',
-  passwordHash: 'demo-password-hash',
+  password: 'demo-password-1234',
   categories: [
     { name: 'Salary', type: 'income' as const },
     { name: 'Food', type: 'expense' as const },
@@ -23,6 +24,8 @@ const seedPayload = {
 };
 
 async function main(): Promise<void> {
+  const passwordHash = await bcrypt.hash(seedPayload.password, 12);
+
   await prisma.user.deleteMany({
     where: {
       email: seedPayload.userEmail,
@@ -32,7 +35,7 @@ async function main(): Promise<void> {
   const user = await prisma.user.create({
     data: {
       email: seedPayload.userEmail,
-      passwordHash: seedPayload.passwordHash,
+      passwordHash,
     },
     select: { id: true },
   });
@@ -72,7 +75,7 @@ async function main(): Promise<void> {
     })),
   });
 
-  console.log('Seed completed for demo@cashflow.local');
+  console.log(`Seed completed for ${seedPayload.userEmail} with password ${seedPayload.password}`);
 }
 
 main()
