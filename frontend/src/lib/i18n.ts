@@ -47,6 +47,24 @@ export type TranslationKey =
   | 'dashboard.saveGoal'
   | 'dashboard.goalSaved'
   | 'dashboard.goalSaveFailed'
+  | 'dashboard.longTermGoal'
+  | 'dashboard.wealthTrack'
+  | 'dashboard.longTermTarget'
+  | 'dashboard.longTermProgress'
+  | 'dashboard.lifetimeSavings'
+  | 'dashboard.longTermGap'
+  | 'dashboard.milestones'
+  | 'dashboard.milestone'
+  | 'dashboard.milestoneReached'
+  | 'dashboard.milestoneRemaining'
+  | 'dashboard.setLongTermTargetHint'
+  | 'dashboard.targetRunway'
+  | 'dashboard.monthsAtCurrentPace'
+  | 'dashboard.cashFlowTrend'
+  | 'dashboard.decisionLayer'
+  | 'dashboard.noTrendData'
+  | 'dashboard.bestDay'
+  | 'dashboard.worstDay'
   | 'dashboard.spendingHotspots'
   | 'dashboard.topCategories'
   | 'dashboard.noExpenseData'
@@ -213,6 +231,24 @@ const en: Dict = {
   'dashboard.saveGoal': 'Save monthly target',
   'dashboard.goalSaved': 'Monthly goal saved.',
   'dashboard.goalSaveFailed': 'Failed to save monthly goal',
+  'dashboard.longTermGoal': 'Long-term goal',
+  'dashboard.wealthTrack': 'Wealth track',
+  'dashboard.longTermTarget': 'Long-term target',
+  'dashboard.longTermProgress': 'Long-term progress',
+  'dashboard.lifetimeSavings': 'Lifetime savings',
+  'dashboard.longTermGap': 'Long-term gap',
+  'dashboard.milestones': 'Milestones',
+  'dashboard.milestone': 'Milestone',
+  'dashboard.milestoneReached': 'Reached',
+  'dashboard.milestoneRemaining': 'Remaining',
+  'dashboard.setLongTermTargetHint': 'Set a long-term target to visualize bigger milestones beyond this month.',
+  'dashboard.targetRunway': 'Target runway',
+  'dashboard.monthsAtCurrentPace': 'months at current monthly target pace',
+  'dashboard.cashFlowTrend': 'Cash flow trend',
+  'dashboard.decisionLayer': 'Decision layer',
+  'dashboard.noTrendData': 'Not enough transactions yet to draw a trend.',
+  'dashboard.bestDay': 'Best day',
+  'dashboard.worstDay': 'Worst day',
   'dashboard.spendingHotspots': 'Spending hotspots',
   'dashboard.topCategories': 'Top expense categories',
   'dashboard.noExpenseData': 'No expense transactions for this month yet.',
@@ -377,6 +413,24 @@ const zh: Dict = {
   'dashboard.saveGoal': '儲存每月目標',
   'dashboard.goalSaved': '每月目標已儲存。',
   'dashboard.goalSaveFailed': '每月目標儲存失敗',
+  'dashboard.longTermGoal': '長期目標',
+  'dashboard.wealthTrack': '長線進度',
+  'dashboard.longTermTarget': '長期儲蓄目標',
+  'dashboard.longTermProgress': '長期進度',
+  'dashboard.lifetimeSavings': '累積淨儲蓄',
+  'dashboard.longTermGap': '距離長期目標',
+  'dashboard.milestones': '里程碑',
+  'dashboard.milestone': '里程碑',
+  'dashboard.milestoneReached': '已達成',
+  'dashboard.milestoneRemaining': '尚欠',
+  'dashboard.setLongTermTargetHint': '先設定一個長期目標，便可以看到超出單月以外的里程碑進度。',
+  'dashboard.targetRunway': '達標所需時間',
+  'dashboard.monthsAtCurrentPace': '個月（按目前每月目標速度）',
+  'dashboard.cashFlowTrend': '現金流趨勢',
+  'dashboard.decisionLayer': '決策層',
+  'dashboard.noTrendData': '交易資料仍不足，暫時未能畫出趨勢。',
+  'dashboard.bestDay': '表現最好的一天',
+  'dashboard.worstDay': '壓力最大的一天',
   'dashboard.spendingHotspots': '支出熱點',
   'dashboard.topCategories': '主要支出分類',
   'dashboard.noExpenseData': '本月尚未有支出交易。',

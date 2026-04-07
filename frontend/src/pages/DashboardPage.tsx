@@ -63,6 +63,41 @@ function buildBudgetComparison(
     .sort((left, right) => left.remaining - right.remaining);
 }
 
+function buildTrendSeries(transactions: Transaction[]): Array<{ label: string; net: number }> {
+  const totals = new Map<string, number>();
+
+  for (const transaction of transactions) {
+    const signedAmount = transaction.type === 'income' ? transaction.amount : -transaction.amount;
+    totals.set(transaction.occurredOn, (totals.get(transaction.occurredOn) ?? 0) + signedAmount);
+  }
+
+  return [...totals.entries()]
+    .sort((left, right) => left[0].localeCompare(right[0]))
+    .slice(-10)
+    .map(([label, net]) => ({ label: label.slice(5), net }));
+}
+
+function buildTrendPolyline(points: Array<{ label: string; net: number }>): string {
+  if (points.length === 0) {
+    return '';
+  }
+
+  const width = 320;
+  const height = 110;
+  const values = points.map((point) => point.net);
+  const min = Math.min(...values, 0);
+  const max = Math.max(...values, 0);
+  const range = max - min || 1;
+
+  return points
+    .map((point, index) => {
+      const x = points.length === 1 ? width / 2 : (index / (points.length - 1)) * width;
+      const y = height - ((point.net - min) / range) * height;
+      return `${x},${y}`;
+    })
+    .join(' ');
+}
+
 export function DashboardPage(): JSX.Element {
   const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const { profile } = useAuth();
@@ -76,6 +111,16 @@ export function DashboardPage(): JSX.Element {
   const error = overviewError ?? transactionsError ?? budgetsError;
   const topExpenseCategories = buildTopExpenseCategories(transactions);
   const budgetComparison = buildBudgetComparison(budgets, transactions);
+  const trendSeries = buildTrendSeries(transactions);
+  const trendPolyline = buildTrendPolyline(trendSeries);
+  const bestTrendPoint = trendSeries.reduce<{ label: string; net: number } | null>(
+    (best, point) => (!best || point.net > best.net ? point : best),
+    null,
+  );
+  const worstTrendPoint = trendSeries.reduce<{ label: string; net: number } | null>(
+    (worst, point) => (!worst || point.net < worst.net ? point : worst),
+    null,
+  );
 
   return (
     <>
@@ -156,6 +201,42 @@ export function DashboardPage(): JSX.Element {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <Panel title={t('dashboard.cashFlowTrend')} eyebrow={t('dashboard.decisionLayer')}>
+          {trendSeries.length > 0 ? (
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
+                <svg className="h-[140px] w-full" viewBox="0 0 320 120" preserveAspectRatio="none" role="img">
+                  <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(255,255,255,0.12)" strokeDasharray="4 4" />
+                  <polyline
+                    fill="none"
+                    stroke="rgb(72 225 207)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={trendPolyline}
+                  />
+                </svg>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.bestDay')}</p>
+                  <p className="mt-3 text-lg text-reef">
+                    {bestTrendPoint ? `${bestTrendPoint.label} · ${formatCurrency(bestTrendPoint.net)}` : '-'}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.worstDay')}</p>
+                  <p className="mt-3 text-lg text-coral">
+                    {worstTrendPoint ? `${worstTrendPoint.label} · ${formatCurrency(worstTrendPoint.net)}` : '-'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-white/55">{t('dashboard.noTrendData')}</p>
+          )}
+        </Panel>
+
         <Panel title={t('dashboard.topCategories')} eyebrow={t('dashboard.spendingHotspots')}>
           <div className="space-y-3">
             {topExpenseCategories.map((item, index) => (

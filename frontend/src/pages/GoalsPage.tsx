@@ -6,6 +6,7 @@ import { Panel } from '../components/Panel';
 import { useMonthlyGoal } from '../hooks/useMonthlyGoal';
 import { useMonthlyGoalMutations } from '../hooks/useMonthlyGoalMutations';
 import { useOverview } from '../hooks/useOverview';
+import { useTransactions } from '../hooks/useTransactions';
 import type { MonthlyGoal } from '../types';
 import { usePreferences } from '../providers/PreferencesProvider';
 
@@ -64,6 +65,14 @@ function getGoalStatus(
   return 'offTrack';
 }
 
+function buildMilestones(target: number): number[] {
+  if (target <= 0) {
+    return [];
+  }
+
+  return [0.25, 0.5, 0.75, 1].map((ratio) => Math.round(target * ratio));
+}
+
 export function GoalsPage(): JSX.Element {
   const { month, fromDate, toDate } = useOutletContext<ShellContext>();
   const { t } = usePreferences();
@@ -71,8 +80,10 @@ export function GoalsPage(): JSX.Element {
   const { overview, isLoading: isOverviewLoading, error: overviewError } = useOverview(
     hasCustomRange ? { from: fromDate, to: toDate } : { month },
   );
+  const { transactions: allTransactions, isLoading: isLifetimeLoading, error: lifetimeError } = useTransactions();
   const { monthlyGoal, isLoading: isGoalLoading, error: goalError, reload: reloadGoal } = useMonthlyGoal(month);
   const [goalInput, setGoalInput] = useState('');
+  const [longTermGoalInput, setLongTermGoalInput] = useState('');
   const { status: goalStatusMessage, isSaving: isSavingGoal, save } = useMonthlyGoalMutations({
     onAfterSave: async () => reloadGoal(),
     onErrorMessage: t('dashboard.goalSaveFailed'),
@@ -90,12 +101,32 @@ export function GoalsPage(): JSX.Element {
   const goalStatus = getGoalStatus(monthlyGoal, currentSavings, projectedMonthEndBalance);
   const goalProgressPercent =
     savingsTarget > 0 ? Math.max(0, Math.min((currentSavings / savingsTarget) * 100, 100)) : 0;
-  const isLoading = isOverviewLoading || isGoalLoading;
-  const error = overviewError ?? goalError;
+  const lifetimeBalance = allTransactions.reduce(
+    (sum, transaction) => sum + (transaction.type === 'income' ? transaction.amount : -transaction.amount),
+    0,
+  );
+  const longTermTarget = Number(longTermGoalInput || 0);
+  const longTermGap = Math.max(longTermTarget - lifetimeBalance, 0);
+  const longTermProgress = longTermTarget > 0 ? Math.max(0, Math.min((lifetimeBalance / longTermTarget) * 100, 100)) : 0;
+  const milestones = buildMilestones(longTermTarget);
+  const monthlyRunway = savingsTarget > 0 ? longTermGap / savingsTarget : 0;
+  const isLoading = isOverviewLoading || isGoalLoading || isLifetimeLoading;
+  const error = overviewError ?? goalError ?? lifetimeError;
 
   useEffect(() => {
     setGoalInput(monthlyGoal ? String(monthlyGoal.savingsTarget) : '');
   }, [monthlyGoal?.id, monthlyGoal?.savingsTarget]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('cashflow-long-term-goal');
+    setLongTermGoalInput(stored ?? '10000');
+  }, []);
+
+  useEffect(() => {
+    if (longTermGoalInput !== '') {
+      window.localStorage.setItem('cashflow-long-term-goal', longTermGoalInput);
+    }
+  }, [longTermGoalInput]);
 
   async function handleGoalSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -233,6 +264,79 @@ export function GoalsPage(): JSX.Element {
                 ? `You are ahead of target by ${formatCurrency(Math.abs(targetGap))}.`
                 : `You still need ${formatCurrency(targetGap)} to reach this month's target.`}
             </p>
+          </div>
+        </Panel>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <Panel title={t('dashboard.longTermGoal')} eyebrow={t('dashboard.wealthTrack')}>
+          <div className="space-y-4">
+            <label className="field">
+              <span className="field-label">{t('dashboard.longTermTarget')}</span>
+              <input
+                className="text-input"
+                min="0"
+                step="0.01"
+                type="number"
+                value={longTermGoalInput}
+                onChange={(event) => setLongTermGoalInput(event.target.value)}
+              />
+            </label>
+            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-white/55">{t('dashboard.longTermProgress')}</p>
+                <p className="text-sm text-sand">{longTermProgress.toFixed(1)}%</p>
+              </div>
+              <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-reef" style={{ width: `${longTermProgress}%` }} />
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.lifetimeSavings')}</p>
+                  <p className="mt-2 text-lg text-white">{formatCurrency(lifetimeBalance)}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.longTermGap')}</p>
+                  <p className="mt-2 text-lg text-sand">{formatCurrency(longTermGap)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title={t('dashboard.milestones')} eyebrow={t('dashboard.longTermTarget')}>
+          <div className="space-y-3">
+            {milestones.length > 0 ? (
+              milestones.map((value, index) => {
+                const reached = lifetimeBalance >= value;
+
+                return (
+                  <div key={`${value}-${index}`} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-medium text-white">
+                        {t('dashboard.milestone')} {index + 1}
+                      </p>
+                      <p className={reached ? 'text-reef' : 'text-sand'}>{formatCurrency(value)}</p>
+                    </div>
+                    <p className="mt-3 text-sm text-white/60">
+                      {reached
+                        ? t('dashboard.milestoneReached')
+                        : `${t('dashboard.milestoneRemaining')} ${formatCurrency(Math.max(value - lifetimeBalance, 0))}`}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-white/55">{t('dashboard.setLongTermTargetHint')}</p>
+            )}
+            {monthlyRunway > 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/45">{t('dashboard.targetRunway')}</p>
+                <p className="mt-3 text-lg text-sand">
+                  {monthlyRunway.toFixed(1)} {t('dashboard.monthsAtCurrentPace')}
+                </p>
+              </div>
+            ) : null}
           </div>
         </Panel>
       </section>
