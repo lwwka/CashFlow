@@ -2,6 +2,8 @@ FROM node:20-bookworm-slim AS build
 
 WORKDIR /app/backend
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
 
@@ -13,6 +15,8 @@ FROM node:20-bookworm-slim AS runtime
 
 WORKDIR /app/backend
 ENV NODE_ENV=production
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/backend/package.json ./package.json
 COPY --from=build /app/backend/package-lock.json ./package-lock.json
